@@ -19,6 +19,7 @@ Displays active model, live context token usage with progress bars, git branch s
 - **Session (5h) Quota Slider**: 10-step shaded slider (`▓`/`░`) showing rolling 5-hour quota usage.
 - **Weekly (7d) Quota Slider**: 10-step shaded slider showing weekly quota usage.
 - **Smart Quota Pool Detection**: Automatically routes quota queries to `gemini` or `3p`/`claude` based on active model id.
+- **Smart Installer**: Auto-detects existing Nerd Fonts, offers automated one-click font installation (via Homebrew or direct archive download), and guides terminal configuration.
 - **Blazing Fast**: Single-pass `jq` extraction with zero subshells when payload VCS data is available.
 
 ---
@@ -40,13 +41,13 @@ Displays active model, live context token usage with progress bars, git branch s
 1. **Antigravity CLI (`agy`)**: Installed and initialized (`~/.gemini/antigravity-cli`).
 2. **`jq`**: JSON processor (`brew install jq` on macOS or `sudo apt install jq` on Linux).
 3. **`git`**: For branch resolution.
-4. **Nerd Font**: Terminal font with Powerline glyph support (e.g., JetBrainsMono Nerd Font, FiraCode Nerd Font, Meslo, etc.) to render the `` arrow separator.
+4. **Nerd Font**: Terminal font with Powerline glyph support (e.g., JetBrainsMono Nerd Font, Meslo, FiraCode, etc.) to render the `` arrow separator. The installer will offer to install this for you if missing.
 
 ---
 
 ## Installation
 
-### One-line Install via Git
+### One-line Automated Install
 
 ```bash
 git clone https://github.com/chahine/agy-statusline.git
@@ -55,47 +56,36 @@ bash bin/install.sh
 ```
 
 The installer will:
-1. Back up any existing `~/.gemini/statusline.sh` to `~/.gemini/statusline.sh.bak`.
-2. Install the script to `~/.gemini/statusline.sh`.
-3. Update `~/.gemini/antigravity-cli/settings.json` to register the status line command.
-
-Restart your `agy` session or open a new terminal to see the status line in action!
+1. Check dependencies (`jq`, `git`, and `agy`).
+2. Auto-detect installed Nerd Fonts or offer to install **JetBrainsMono Nerd Font** (via Homebrew or direct archive download).
+3. Back up any existing `~/.gemini/statusline.sh` to `~/.gemini/statusline.sh.bak`.
+4. Install `statusline.sh` to `~/.gemini/statusline.sh`.
+5. Register the status line command in `~/.gemini/antigravity-cli/settings.json`.
+6. Provide specific instructions for configuring your terminal emulator font.
 
 ---
 
-## Manual Configuration
+## Terminal Font Configuration
 
-If you prefer to configure manually, copy `bin/statusline.sh` to `~/.gemini/statusline.sh`:
+To render the Powerline arrows (``) and git branch symbols (`⎇`) crisply, ensure your terminal is set to use a Nerd Font:
 
-```bash
-cp bin/statusline.sh ~/.gemini/statusline.sh
-chmod +x ~/.gemini/statusline.sh
-```
-
-Then add or update the `statusLine` section in `~/.gemini/antigravity-cli/settings.json`:
-
-```json
-{
-  "statusLine": {
-    "type": "command",
-    "command": "bash \"$HOME/.gemini/statusline.sh\"",
-    "enabled": true
-  }
-}
-```
+- **macOS Terminal.app**: `Settings (⌘,)` → `Profiles` → `Font` → `Change...` → Select `JetBrainsMono Nerd Font`
+- **iTerm2**: `Settings (⌘,)` → `Profiles` → `Text` → `Font` → Select `JetBrainsMono Nerd Font` (or enable Non-ASCII font)
+- **VS Code / Cursor / Antigravity Terminal**: `Settings (⌘,)` → search `terminal.integrated.fontFamily` → set to `'JetBrainsMono Nerd Font'`
+- **Ghostty**: Add `font-family = "JetBrainsMono Nerd Font"` to `~/.config/ghostty/config`
+- **Alacritty**: In `~/.config/alacritty/alacritty.toml`, set `[font.normal] family = "JetBrainsMono Nerd Font"`
+- **Kitty**: In `~/.config/kitty/kitty.conf`, set `font_family JetBrainsMono Nerd Font`
 
 ---
 
 ## Uninstallation
 
-To restore your previous setup:
+To remove the status line and restore your previous configuration:
 
 ```bash
 cd agy-statusline
 bash bin/uninstall.sh
 ```
-
-This removes the `statusLine` entry from `settings.json` and restores `~/.gemini/statusline.sh.bak` if present.
 
 ---
 
