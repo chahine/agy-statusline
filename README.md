@@ -1,38 +1,45 @@
 # agy-statusline
 
-A fast, beautiful Powerline status line for Google DeepMind's **Antigravity CLI (`agy`)**.
+A fast, beautiful 2-line status line for Google DeepMind's **Antigravity CLI (`agy`)**.
 
-Displays active model, live context token usage with progress bars, git branch status, and real-time session (5h) and weekly (7d) quota consumption with shaded visual sliders.
+Displays active model and tier, workspace directory, git branch, agent execution state, live context window usage, and rolling 5-hour and weekly quota gauges with reset durations.
 
 ```
- Gemini 2.5 Pro  [████░░░░░░░░░░░░] 245k/1.0M (24.5%)  ⎇ main  Session: ▓▓▓░░░░░░░ 32.0%  Weekly: ▓▓░░░░░░░░ 15.0% 
+ 3.8 Flash Med |  Pro │  net-worth-tracker │  main │ ● Idle
+󰍛 Context █░░░░░░░░░ 11% │  Usage ██████████ 96% ( 4h 51m) |  ██████░░░░ 57% ( 3d 13h)
 ```
 
 ---
 
 ## Features
 
-- **Powerline Segmented Layout**: Segmented with Nerd Font solid arrows (``) and individual ANSI-256 color groups.
-- **Model Display**: Shows active model name (`Gemini 2.5 Pro`, `Claude 3.7 Sonnet`, etc.).
-- **Context Window Bar**: Visual bar (`█`/`░`) displaying token counts and percentage used (e.g. `[████░░░░░░░░░░░░] 245k/1.0M (24.5%)`).
-- **Git Branch Integration**: Shows current git branch with `⎇` branch symbol, using agy's VCS payload or subshell git fallback.
-- **Session (5h) Quota Slider**: 10-step shaded slider (`▓`/`░`) showing rolling 5-hour quota usage.
-- **Weekly (7d) Quota Slider**: 10-step shaded slider showing weekly quota usage.
-- **Smart Quota Pool Detection**: Automatically routes quota queries to `gemini` or `3p`/`claude` based on active model id.
-- **Smart Installer**: Auto-detects existing Nerd Fonts, offers automated one-click font installation (via Homebrew or direct archive download), and guides terminal configuration.
-- **Blazing Fast**: Single-pass `jq` extraction with zero subshells when payload VCS data is available.
+- **2-Line HUD Layout**: Clean multi-line layout separating session identity from live telemetry and quotas.
+- **Model & Plan Display**: Shortened model name (`3.8 Flash Med`, `Sonnet 3.7`, etc.) along with current plan tier (` Pro` / `Free`).
+- **Workspace & Git**: Shows current repository folder (` <dir>`) and active branch (` <branch>`).
+- **Agent Lifecycle State**: Color-coded live state (`● Idle`, `● Thinking`, `● Running`).
+- **Context Window Bar**: 10-step progress bar (`█`/`░`) colored dynamically by consumption percentage.
+- **Dual Quota Monitoring**: Real-time 5-hour rolling session quota and 7-day weekly quota gauges with live reset countdown timers (` 4h 51m`, ` 3d 13h`).
+- **High Compatibility**: Integrates seamlessly with `agy-hud` or runs as a self-contained pure Bash + `jq` script.
+- **Smart Installer**: Auto-detects installed Nerd Fonts, offers automated one-click font installation (via Homebrew or direct archive download), and guides terminal configuration.
 
 ---
 
 ## Visual Elements
 
-| Segment | Icon / Format | Description |
+### Line 1 — Workspace & Session
+| Element | Icon / Format | Description |
 |:---|:---|:---|
-| **Model** | `Gemini 2.5 Pro` | Current active model in the session |
-| **Context** | `[████░░░░░░░░░░░░] 245k/1.0M (24.5%)` | Context window fill bar + token usage |
-| **Git** | `⎇ main` | Active git branch for current workspace |
-| **Session** | `Session: ▓▓▓░░░░░░░ 32.0%` | 5-hour rolling rate limit / quota |
-| **Weekly** | `Weekly: ▓▓░░░░░░░░ 15.0%` | 7-day rolling rate limit / quota |
+| **Model & Plan** | ` 3.8 Flash Med \|  Pro` | Active model identifier and subscription tier |
+| **Workspace** | ` net-worth-tracker` | Current working directory basename |
+| **Git Branch** | ` main` | Active VCS branch |
+| **Agent State** | `● Idle` | Current agent state (Idle / Running / Thinking) |
+
+### Line 2 — Context & Quotas
+| Element | Icon / Format | Description |
+|:---|:---|:---|
+| **Context** | `󰍛 Context █░░░░░░░░░ 11%` | Context window fill bar and percentage |
+| **Session Usage** | ` Usage ██████████ 96% ( 4h 51m)` | 5-hour rolling rate limit usage & reset timer |
+| **Weekly Usage** | `██████░░░░ 57% ( 3d 13h)` | 7-day rate limit usage & reset timer |
 
 ---
 
@@ -41,13 +48,13 @@ Displays active model, live context token usage with progress bars, git branch s
 1. **Antigravity CLI (`agy`)**: Installed and initialized (`~/.gemini/antigravity-cli`).
 2. **`jq`**: JSON processor (`brew install jq` on macOS or `sudo apt install jq` on Linux).
 3. **`git`**: For branch resolution.
-4. **Nerd Font**: Terminal font with Powerline glyph support (e.g., JetBrainsMono Nerd Font, Meslo, FiraCode, etc.) to render the `` arrow separator. The installer will offer to install this for you if missing.
+4. **Nerd Font**: Terminal font with glyph support (e.g. JetBrainsMono Nerd Font, FiraCode, Meslo) to display icons properly. The installer can install this for you.
 
 ---
 
 ## Installation
 
-### One-line Automated Install
+### Automated Install
 
 ```bash
 git clone https://github.com/chahine/agy-statusline.git
@@ -56,34 +63,19 @@ bash bin/install.sh
 ```
 
 The installer will:
-1. Check dependencies (`jq`, `git`, and `agy`).
-2. Auto-detect installed Nerd Fonts or offer to install **JetBrainsMono Nerd Font** (via Homebrew or direct archive download).
-3. Back up any existing `~/.gemini/statusline.sh` to `~/.gemini/statusline.sh.bak`.
-4. Install `statusline.sh` to `~/.gemini/statusline.sh`.
-5. Register the status line command in `~/.gemini/antigravity-cli/settings.json`.
-6. Provide specific instructions for configuring your terminal emulator font.
+1. Verify system dependencies (`jq`, `git`, and `agy`).
+2. Auto-detect installed Nerd Fonts or offer to install **JetBrainsMono Nerd Font** automatically.
+3. Install `statusline.sh` to `~/.gemini/statusline.sh`.
+4. Configure `~/.gemini/antigravity-cli/settings.json` to enable `statusLine`.
+5. Display a live preview of the 2-line HUD.
 
 ---
 
-## Terminal Font Configuration
+## Uninstall
 
-To render the Powerline arrows (``) and git branch symbols (`⎇`) crisply, ensure your terminal is set to use a Nerd Font:
-
-- **macOS Terminal.app**: `Settings (⌘,)` → `Profiles` → `Font` → `Change...` → Select `JetBrainsMono Nerd Font`
-- **iTerm2**: `Settings (⌘,)` → `Profiles` → `Text` → `Font` → Select `JetBrainsMono Nerd Font` (or enable Non-ASCII font)
-- **VS Code / Cursor / Antigravity Terminal**: `Settings (⌘,)` → search `terminal.integrated.fontFamily` → set to `'JetBrainsMono Nerd Font'`
-- **Ghostty**: Add `font-family = "JetBrainsMono Nerd Font"` to `~/.config/ghostty/config`
-- **Alacritty**: In `~/.config/alacritty/alacritty.toml`, set `[font.normal] family = "JetBrainsMono Nerd Font"`
-- **Kitty**: In `~/.config/kitty/kitty.conf`, set `font_family JetBrainsMono Nerd Font`
-
----
-
-## Uninstallation
-
-To remove the status line and restore your previous configuration:
+To remove the statusline configuration:
 
 ```bash
-cd agy-statusline
 bash bin/uninstall.sh
 ```
 
@@ -91,4 +83,4 @@ bash bin/uninstall.sh
 
 ## License
 
-[MIT](LICENSE) © [Chahine Mouhamad](https://github.com/chahine)
+MIT

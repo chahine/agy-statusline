@@ -138,6 +138,28 @@ cp "$STATUSLINE_SRC" "$STATUSLINE_DEST"
 chmod +x "$STATUSLINE_DEST"
 ok "Installed statusline to ${dim}$STATUSLINE_DEST${reset}"
 
+# ── 4b. Configure HUD defaults if agy-hud present ───────────
+HUD_CONFIG_DIR="$HOME/.config/agy-hud"
+if [ ! -f "$HUD_CONFIG_DIR/config.json" ]; then
+    mkdir -p "$HUD_CONFIG_DIR"
+    cat <<'EOF' > "$HUD_CONFIG_DIR/config.json"
+{
+  "show_model": true,
+  "show_progress_bar": true,
+  "multiline": true,
+  "color": true,
+  "debug": false,
+  "show_git_branch": true,
+  "show_cwd": true,
+  "show_agent_state": true,
+  "show_icons": true,
+  "context_value": "percent",
+  "usage_value": "used"
+}
+EOF
+    ok "Created HUD configuration at ${dim}$HUD_CONFIG_DIR/config.json${reset}"
+fi
+
 # ── 5. Update settings.json ──────────────────────────────────
 if [ ! -f "$SETTINGS_FILE" ]; then
     echo '{}' > "$SETTINGS_FILE"
@@ -161,7 +183,7 @@ echo
 echo -e "  ${blue}┌────────────────────────────────────────────────────────────────────────┐${reset}"
 echo -e "  ${blue}│${reset}  ${green}Terminal Font Configuration Required${reset}                                  ${blue}│${reset}"
 echo -e "  ${blue}├────────────────────────────────────────────────────────────────────────┤${reset}"
-echo -e "  ${blue}│${reset}  To display Powerline arrows (${yellow}${reset}) and git glyphs (${yellow}⎇${reset}) properly,        ${blue}│${reset}"
+echo -e "  ${blue}│${reset}  To display status line icons (${yellow}    󰍛  ${reset}) properly,                   ${blue}│${reset}"
 echo -e "  ${blue}│${reset}  ensure your terminal emulator is set to use a ${yellow}Nerd Font${reset}:               ${blue}│${reset}"
 echo -e "  ${blue}│${reset}                                                                        ${blue}│${reset}"
 echo -e "  ${blue}│${reset}  • ${dim}macOS Terminal.app:${reset} Settings (⌘,) → Profiles → Font → Change...    ${blue}│${reset}"
@@ -192,5 +214,10 @@ if [ -t 0 ]; then
     echo
 fi
 
-echo -e "  ${green}All set!${reset} Restart agy or open a new terminal session to enjoy your status line."
+echo -e "  ${green}All set!${reset} Status line installed. Preview:"
+echo
+cols=$(tput cols 2>/dev/null || echo 120)
+[ "$cols" -lt 100 ] && cols=120
+printf '{"model":{"id":"gemini-3.8-flash-med","display_name":"3.8 Flash Med"},"plan_tier":"Google AI Pro","agent_state":"idle","vcs":{"branch":"main"},"cwd":"%s","context_window":{"used_percentage":11},"quota":{"gemini-5h":{"remaining_fraction":0.04,"reset_in_seconds":17460},"gemini-weekly":{"remaining_fraction":0.43,"reset_in_seconds":306000}},"terminal_width":%d}' "$(pwd)" "$cols" | "$STATUSLINE_DEST"
+echo
 echo
