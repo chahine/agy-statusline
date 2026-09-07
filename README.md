@@ -52,7 +52,7 @@ Displays active model and tier, workspace directory, git branch, agent execution
 
 #### Standard Session (Idle)
 ```text
-⚡ 3.8 Flash Med | ✦ Pro │ 📁 net-worth-tracker │ ⎇ main │ ● Idle
+⚡ 3.8 Flash Med | ✦ Pro │ 📁 agy-statusline │ ⎇ main │ ● Idle
 🧠 Context █░░░░░░░░░ 11% │ ⚡ Usage ██████████ 96% (⏱ 4h 51m) |  ██████░░░░ 57% (⏱ 3d 13h)
 ```
 
@@ -64,14 +64,14 @@ Displays active model and tier, workspace directory, git branch, agent execution
 
 #### Deep Reasoning State (Thinking)
 ```text
-⚡ Sonnet 3.7 | ✦ Pro │ 📁 backend-api │ ⎇ develop │ ● Thinking
+⚡ Sonnet 3.7 | ✦ Pro │ 📁 agy-statusline │ ⎇ develop │ ● Thinking
 🧠 Context ░░░░░░░░░░ 3% │ ⚡ Usage ██░░░░░░░░ 24% (⏱ 3h 10m) |  █░░░░░░░░░ 12% (⏱ 6d 19h)
 ```
 
 #### High Load / Near Quota Limit Warning
 When context or quota exceeds 90%, progress bars dynamically change color to red:
 ```text
-⚡ 3.8 Flash High | ✦ Pro │ 📁 core-engine │ ⎇ hotfix │ ● Executing
+⚡ 3.8 Flash High | ✦ Pro │ 📁 agy-statusline │ ⎇ hotfix │ ● Executing
 🧠 Context █████████░ 94% │ ⚡ Usage ██████████ 99% (⏱ 12m) |  █████████░ 91% (⏱ 18h)
 ```
 
@@ -83,7 +83,7 @@ You can pipe JSON payloads directly into `bin/statusline.sh` to test how your te
 
 #### Basic Test
 ```bash
-echo '{"model":{"id":"gemini-3.8-flash-med","display_name":"3.8 Flash Med"},"plan_tier":"Google AI Pro","agent_state":"idle","vcs":{"branch":"main"},"cwd":"/Users/username/my-project","context_window":{"used_percentage":11},"quota":{"gemini-5h":{"remaining_fraction":0.04,"reset_in_seconds":17460},"gemini-weekly":{"remaining_fraction":0.43,"reset_in_seconds":306000}},"terminal_width":120}' | bin/statusline.sh
+echo '{"model":{"id":"gemini-3.8-flash-med","display_name":"3.8 Flash Med"},"plan_tier":"Google AI Pro","agent_state":"idle","vcs":{"branch":"main"},"cwd":"/Users/username/agy-statusline","context_window":{"used_percentage":11},"quota":{"gemini-5h":{"remaining_fraction":0.04,"reset_in_seconds":17460},"gemini-weekly":{"remaining_fraction":0.43,"reset_in_seconds":306000}},"terminal_width":120}' | bin/statusline.sh
 ```
 
 #### Testing Dynamic Agent States & High Context
@@ -94,7 +94,7 @@ cat <<'EOF' | bin/statusline.sh
   "plan_tier": "Google AI Pro",
   "agent_state": "running",
   "vcs": { "branch": "release/v2" },
-  "cwd": "/workspace/payment-service",
+  "cwd": "/workspace/agy-statusline",
   "context_window": { "used_percentage": 75 },
   "quota": {
     "gemini-5h": { "remaining_fraction": 0.20, "reset_in_seconds": 3600 },

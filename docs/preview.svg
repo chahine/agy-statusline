@@ -56,26 +56,26 @@
     <g transform="translate(222, -12) scale(0.65)">
       <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9l-.8-1.2A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2z" fill="#ff8500"/>
     </g>
-    <text x="242" y="0" class="txt bold dir">net-worth-tracker</text>
+    <text x="242" y="0" class="txt bold dir">agy-statusline</text>
 
     <!-- Separator -->
-    <text x="396" y="0" class="txt slate">│</text>
+    <text x="368" y="0" class="txt slate">│</text>
 
     <!-- Git Branch Icon (Electric Orchid #d946ef) -->
-    <g transform="translate(416, -13) scale(0.68)">
+    <g transform="translate(388, -13) scale(0.68)">
       <circle cx="6" cy="18" r="3" fill="#d946ef"/>
       <circle cx="6" cy="6" r="3" fill="#d946ef"/>
       <circle cx="18" cy="9" r="3" fill="#d946ef"/>
       <path d="M6 9v6M18 9a9 9 0 0 1-9 9" stroke="#d946ef" stroke-width="2.2" fill="none"/>
     </g>
-    <text x="436" y="0" class="txt bold git">main</text>
+    <text x="408" y="0" class="txt bold git">main</text>
 
     <!-- Separator -->
-    <text x="482" y="0" class="txt slate">│</text>
+    <text x="454" y="0" class="txt slate">│</text>
 
     <!-- State Bullet + Idle (Bright Neon Green #00e676) -->
-    <circle cx="506" cy="-4" r="4" fill="#00e676"/>
-    <text x="516" y="0" class="txt bold state">Idle</text>
+    <circle cx="478" cy="-4" r="4" fill="#00e676"/>
+    <text x="488" y="0" class="txt bold state">Idle</text>
   </g>
 
   <!-- Line 2: Telemetry & Quotas -->

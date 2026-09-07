@@ -158,7 +158,7 @@ case "$agent_state" in
 esac
 
 # ── Assemble Line 1 ──────────────────────────────────────────────────────────
-#  3.8 Flash Med |  Pro │  net-worth-tracker │  main │ ● Idle
+#  3.8 Flash Med |  Pro │  agy-statusline │  main │ ● Idle
 line1="${c_model} ${model}${reset}${c_subsep}${c_tier} ${plan}${reset}${c_sep}${c_dir} ${cwd_name}${reset}${c_sep}${c_git} ${git_branch}${reset}${c_sep}${c_state}● ${state_name}${reset}"
 
 # ── Assemble Line 2 ──────────────────────────────────────────────────────────
