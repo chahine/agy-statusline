@@ -121,13 +121,13 @@ make_bar() {
     [ "$filled_n" -lt 0 ] && filled_n=0
     local empty_n=$(( width - filled_n ))
     
-    local col="\033[38;2;158;206;106m" # soft emerald
+    local col="\033[38;2;0;230;118m"   # Bright Neon Green
     if [ "$pct" -ge 90 ]; then
-        col="\033[38;2;247;118;142m"   # tokyo red
+        col="\033[38;2;255;75;75m"     # Bright Coral Red
     elif [ "$pct" -ge 70 ]; then
-        col="\033[38;2;224;175;104m"   # tokyo warm honey
+        col="\033[38;2;255;214;0m"     # Luminous Gold
     fi
-    local track="\033[38;2;51;65;85m"   # slate dark track
+    local track="\033[38;2;50;60;75m"  # Dark Slate Track
     local reset="\033[0m"
 
     local filled_str="" empty_str="" i
@@ -137,24 +137,24 @@ make_bar() {
     printf "%b%s%b%s%b" "$col" "$filled_str" "$track" "$empty_str" "$reset"
 }
 
-# ── Tokyo Night Color Palette (Line 1 & Line 2) ─────────────────────────────
-c_model="\033[1;38;2;122;162;247m"     # Sapphire Blue   (#7aa2f7)
-c_tier="\033[1;38;2;255;199;119m"      # Warm Gold Badge (#ffc777)
-c_dir="\033[1;38;2;224;175;104m"       # Warm Honey      (#e0af68)
-c_git="\033[1;38;2;187;154;247m"       # Lavender Purple (#bb9af7)
-c_state="\033[1;38;2;158;206;106m"     # Soft Emerald    (#9ece6a)
-c_sep="\033[38;2;100;116;139m │ \033[0m" # Muted Slate Separator
-c_subsep="\033[38;2;100;116;139m | \033[0m" # Subtle inner pipe
-c_label="\033[1;38;2;226;232;240m"     # Crisp White Label
-c_muted="\033[38;2;148;163;184m"       # Dim Muted Clock
+# ── High-Contrast Vibrant Palette (Optimized for Dark Mode) ──────────────────
+c_model="\033[1;38;2;0;229;255m"       # Electric Cyan   (#00e5ff) - Model Name
+c_tier="\033[1;38;2;255;214;0m"        # Luminous Gold   (#ffd600) - Pro/Plan Badge
+c_dir="\033[1;38;2;255;133;0m"         # Vivid Tangerine (#ff8500) - Workspace Folder
+c_git="\033[1;38;2;217;70;239m"        # Electric Orchid (#d946ef) - Git Branch
+c_state="\033[1;38;2;0;230;118m"       # Bright Neon Green (#00e676) - Agent State
+c_sep="\033[38;2;110;120;145m │ \033[0m" # Crisp Slate Separator
+c_subsep="\033[38;2;110;120;145m | \033[0m" # Inner Separator
+c_label="\033[1;38;2;240;246;252m"     # High-Luminance White Label
+c_muted="\033[38;2;160;175;195m"       # Crisp Muted Timer
 reset="\033[0m"
 
-# Dynamic agent state colors (Tokyo Night theme)
+# Dynamic agent state colors (high-vibrancy)
 case "$agent_state" in
-    running|executing) c_state="\033[1;38;2;255;158;100m" ;; # Sunset Orange (#ff9e64)
-    thinking)          c_state="\033[1;38;2;125;207;255m" ;; # Ice Cyan      (#7dcfff)
-    auth)              c_state="\033[1;38;2;247;118;142m" ;; # Tokyo Red     (#f7768e)
-    *)                 c_state="\033[1;38;2;158;206;106m" ;; # Soft Emerald  (#9ece6a)
+    running|executing) c_state="\033[1;38;2;255;61;0m"   ;; # Hot Red-Orange (#ff3d00)
+    thinking)          c_state="\033[1;38;2;56;189;248m" ;; # Electric Sky  (#38bdf8)
+    auth)              c_state="\033[1;38;2;255;23;68m"  ;; # Bright Magenta-Red (#ff1744)
+    *)                 c_state="\033[1;38;2;0;230;118m"  ;; # Bright Neon Green (#00e676)
 esac
 
 # ── Assemble Line 1 ──────────────────────────────────────────────────────────

@@ -26,21 +26,21 @@ Displays active model and tier, workspace directory, git branch, agent execution
 ## Visual Elements
 
 ### Line 1 — Workspace & Session
-| Element | Color (Tokyo Night) | Terminal Glyph | Universal / Web | Description |
+| Element | Color (Dark Mode) | Terminal Glyph | Universal / Web | Description |
 |:---|:---|:---|:---|:---|
-| **Model** | Sapphire Blue (`#7aa2f7`) | `nf-oct-cpu` (`U+F490`) | `⚡` / `🤖` | Active model identifier (e.g. `3.8 Flash Med`) |
-| **Plan Tier** | Warm Gold (`#ffc777`) | `nf-md-shield_account` (`U+F521`) | `✦` / `🛡️` | Current subscription tier (`Pro` / `Free`) |
-| **Workspace** | Warm Honey (`#e0af68`) | `nf-fa-folder_open` (`U+F07C`) | `📁` | Current working directory basename |
-| **Git Branch** | Lavender Purple (`#bb9af7`) | `nf-oct-git_branch` (`U+F418`) | `⎇` | Active VCS branch |
-| **Agent State** | Soft Emerald (`#9ece6a`) | `●` | `●` | Current agent state (`● Idle`, `● Thinking`, `● Running`) |
+| **Model** | Electric Cyan (`#00e5ff`) | `nf-oct-cpu` (`U+F490`) | `⚡` / `🤖` | Active model identifier (e.g. `3.8 Flash Med`) |
+| **Plan Tier** | Luminous Gold (`#ffd600`) | `nf-md-shield_account` (`U+F521`) | `✦` / `🛡️` | Current subscription tier (`Pro` / `Free`) |
+| **Workspace** | Vivid Tangerine (`#ff8500`) | `nf-fa-folder_open` (`U+F07C`) | `📁` | Current working directory basename |
+| **Git Branch** | Electric Orchid (`#d946ef`) | `nf-oct-git_branch` (`U+F418`) | `⎇` | Active VCS branch |
+| **Agent State** | Bright Neon Green (`#00e676`) | `●` | `●` | Current agent state (`● Idle`, `● Thinking`, `● Running`) |
 
 ### Line 2 — Context & Quotas
-| Element | Color (Tokyo Night) | Terminal Glyph | Universal / Web | Description |
+| Element | Color (Dark Mode) | Terminal Glyph | Universal / Web | Description |
 |:---|:---|:---|:---|:---|
 | **Context** | Dynamic Gauge | `nf-md-memory` (`U+DB80+U+DF5B`) | `🧠` | Context window fill bar and percentage |
 | **Session Usage** | Dynamic Gauge | `nf-fa-bolt` (`U+F0E7`) | `⚡` | 5-hour rolling rate limit usage & reset timer |
 | **Weekly Usage** | Dynamic Gauge | — | — | 7-day rate limit usage & reset timer |
-| **Reset Timer** | Muted Slate (`#94a3b8`) | `nf-oct-clock` (`U+F43A`) | `⏱` | Estimated countdown duration until quota bucket resets |
+| **Reset Timer** | Crisp Slate (`#a0afc3`) | `nf-oct-clock` (`U+F43A`) | `⏱` | Estimated countdown duration until quota bucket resets |
 
 > **Note**: In your terminal with a configured Nerd Font (e.g. JetBrainsMono Nerd Font), dedicated glyphs are displayed. In web browsers, universal Unicode symbols are shown below so examples render consistently without missing glyph boxes.
 
