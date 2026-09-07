@@ -4,21 +4,20 @@ A fast, beautiful 2-line status line for Google DeepMind's **Antigravity CLI (`a
 
 Displays active model and tier, workspace directory, git branch, agent execution state, live context window usage, and rolling 5-hour and weekly quota gauges with countdown reset timers.
 
-```text
- 3.8 Flash Med |  Pro │  net-worth-tracker │  main │ ● Idle
-󰍛 Context █░░░░░░░░░ 11% │  Usage ██████████ 96% ( 4h 51m) |  ██████░░░░ 57% ( 3d 13h)
-```
+<p align="center">
+  <img src="docs/preview.svg" alt="agy-statusline preview" width="100%">
+</p>
 
 ---
 
 ## Features
 
 - **2-Line HUD Layout**: Clean multi-line layout separating workspace identity from live telemetry and rate limits.
-- **Model & Plan Display**: Shortened model name (`3.8 Flash Med`, `Sonnet 3.7`, etc.) along with current plan tier (` Pro` / `Free`).
-- **Workspace & Git**: Shows current repository folder (` <dir>`) and active branch (` <branch>`).
+- **Model & Plan Display**: Shortened model name (`3.8 Flash Med`, `Sonnet 3.7`, etc.) along with current plan tier (`Pro` / `Free`).
+- **Workspace & Git**: Shows current repository folder and active branch.
 - **Agent Lifecycle State**: Color-coded live state (`● Idle`, `● Thinking`, `● Running`).
 - **Context Window Bar**: 10-step progress bar (`█`/`░`) colored dynamically by consumption percentage (green, yellow, red).
-- **Dual Quota Monitoring**: Real-time 5-hour rolling session quota and 7-day weekly quota gauges with live reset countdown timers (` 4h 51m`, ` 3d 13h`).
+- **Dual Quota Monitoring**: Real-time 5-hour rolling session quota and 7-day weekly quota gauges with live reset countdown timers (`4h 51m`, `3d 13h`).
 - **High Compatibility**: Integrates seamlessly with `agy-hud` or runs as a self-contained pure Bash + `jq` script.
 - **Smart Installer**: Auto-detects installed Nerd Fonts, offers automated one-click font installation (via Homebrew or direct archive download), and guides terminal configuration.
 
@@ -27,19 +26,23 @@ Displays active model and tier, workspace directory, git branch, agent execution
 ## Visual Elements
 
 ### Line 1 — Workspace & Session
-| Element | Icon / Format | Description |
-|:---|:---|:---|
-| **Model & Plan** | ` 3.8 Flash Med \|  Pro` | Active model identifier and subscription tier |
-| **Workspace** | ` net-worth-tracker` | Current working directory basename |
-| **Git Branch** | ` main` | Active VCS branch |
-| **Agent State** | `● Idle` | Current agent state (Idle / Running / Thinking) |
+| Element | Terminal Glyph | Universal / Web | Description |
+|:---|:---|:---|:---|
+| **Model** | `nf-oct-cpu` (`U+F490`) | `⚡` / `🤖` | Active model identifier (e.g. `3.8 Flash Med`) |
+| **Plan Tier** | `nf-md-shield_account` (`U+F521`) | `✦` / `🛡️` | Current subscription tier (`Pro` / `Free`) |
+| **Workspace** | `nf-fa-folder_open` (`U+F07C`) | `📁` | Current working directory basename |
+| **Git Branch** | `nf-oct-git_branch` (`U+F418`) | `⎇` | Active VCS branch |
+| **Agent State** | `●` | `●` | Current agent state (`● Idle`, `● Thinking`, `● Running`) |
 
 ### Line 2 — Context & Quotas
-| Element | Icon / Format | Description |
-|:---|:---|:---|
-| **Context** | `󰍛 Context █░░░░░░░░░ 11%` | Context window fill bar and percentage |
-| **Session Usage** | ` Usage ██████████ 96% ( 4h 51m)` | 5-hour rolling rate limit usage & reset timer |
-| **Weekly Usage** | `██████░░░░ 57% ( 3d 13h)` | 7-day rate limit usage & reset timer |
+| Element | Terminal Glyph | Universal / Web | Description |
+|:---|:---|:---|:---|
+| **Context** | `nf-md-memory` (`U+DB80+U+DF5B`) | `🧠` | Context window fill bar and percentage |
+| **Session Usage** | `nf-fa-bolt` (`U+F0E7`) | `⚡` | 5-hour rolling rate limit usage & reset timer |
+| **Weekly Usage** | — | — | 7-day rate limit usage & reset timer |
+| **Reset Timer** | `nf-oct-clock` (`U+F43A`) | `⏱` | Estimated countdown duration until quota bucket resets |
+
+> **Note**: In your terminal with a configured Nerd Font (e.g. JetBrainsMono Nerd Font), dedicated glyphs are displayed. In web browsers, universal Unicode symbols are shown below so examples render consistently without missing glyph boxes.
 
 ---
 
@@ -49,27 +52,27 @@ Displays active model and tier, workspace directory, git branch, agent execution
 
 #### Standard Session (Idle)
 ```text
- 3.8 Flash Med |  Pro │  net-worth-tracker │  main │ ● Idle
-󰍛 Context █░░░░░░░░░ 11% │  Usage ██████████ 96% ( 4h 51m) |  ██████░░░░ 57% ( 3d 13h)
+⚡ 3.8 Flash Med | ✦ Pro │ 📁 net-worth-tracker │ ⎇ main │ ● Idle
+🧠 Context █░░░░░░░░░ 11% │ ⚡ Usage ██████████ 96% (⏱ 4h 51m) |  ██████░░░░ 57% (⏱ 3d 13h)
 ```
 
 #### Active Command / Execution State (Running)
 ```text
- 3.1 Pro |  Pro │  agy-statusline │  feature/hud │ ● Running
-󰍛 Context ████████░░ 82% │  Usage █████████░ 88% ( 1h 22m) |  ████░░░░░░ 42% ( 5d 08h)
+⚡ 3.1 Pro | ✦ Pro │ 📁 agy-statusline │ ⎇ feature/hud │ ● Running
+🧠 Context ████████░░ 82% │ ⚡ Usage █████████░ 88% (⏱ 1h 22m) |  ████░░░░░░ 42% (⏱ 5d 08h)
 ```
 
 #### Deep Reasoning State (Thinking)
 ```text
- Sonnet 3.7 |  Pro │  backend-api │  develop │ ● Thinking
-󰍛 Context ░░░░░░░░░░ 3% │  Usage ██░░░░░░░░ 24% ( 3h 10m) |  █░░░░░░░░░ 12% ( 6d 19h)
+⚡ Sonnet 3.7 | ✦ Pro │ 📁 backend-api │ ⎇ develop │ ● Thinking
+🧠 Context ░░░░░░░░░░ 3% │ ⚡ Usage ██░░░░░░░░ 24% (⏱ 3h 10m) |  █░░░░░░░░░ 12% (⏱ 6d 19h)
 ```
 
 #### High Load / Near Quota Limit Warning
 When context or quota exceeds 90%, progress bars dynamically change color to red:
 ```text
- 3.8 Flash High |  Pro │  core-engine │  hotfix │ ● Executing
-󰍛 Context █████████░ 94% │  Usage ██████████ 99% ( 12m) |  █████████░ 91% ( 18h)
+⚡ 3.8 Flash High | ✦ Pro │ 📁 core-engine │ ⎇ hotfix │ ● Executing
+🧠 Context █████████░ 94% │ ⚡ Usage ██████████ 99% (⏱ 12m) |  █████████░ 91% (⏱ 18h)
 ```
 
 ---
