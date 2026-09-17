@@ -272,6 +272,93 @@ else
     fail_count=$((fail_count + 1))
 fi
 
+# 21. Critical context warning: >= 95% triggers inverted alert highlight
+payload_crit_ctx='{
+  "model": {"id": "gemini-3.8-flash-med", "display_name": "3.8 Flash Med"},
+  "plan_tier": "Pro",
+  "agent_state": "idle",
+  "vcs": {"branch": "main"},
+  "cwd": "/workspace/project",
+  "context_window": {"used_percentage": 96},
+  "terminal_width": 120
+}'
+run_test "Critical context >=95% triggers alert highlight" "$payload_crit_ctx" "255;75;75m 96%! "
+
+# 22. Separator style: slash
+run_test "Separator style slash renders / separators" "$payload_cold" "3.8 Flash Med.*\/.*Pro.*\/.*agy-statusline.*\/.*main" 0 "AGY_STATUSLINE_SEPARATOR=slash"
+
+# 23. Separator style: pipe
+run_test "Separator style pipe renders | separators" "$payload_cold" "3.8 Flash Med.*\|.*Pro.*\|.*agy-statusline.*\|.*main" 0 "AGY_STATUSLINE_SEPARATOR=pipe"
+
+# 24. Time format: both (relative duration and absolute time)
+payload_time_test='{
+  "model": {"id": "gemini-3.8-flash-med", "display_name": "3.8 Flash Med"},
+  "plan_tier": "Pro",
+  "agent_state": "idle",
+  "vcs": {"branch": "main"},
+  "cwd": "/workspace/project",
+  "context_window": {"used_percentage": 10},
+  "quota": {
+    "gemini-5h": {"remaining_fraction": 0.50, "reset_in_seconds": 3600}
+  },
+  "terminal_width": 120
+}'
+run_test "Time format both renders duration and clock time" "$payload_time_test" "1h 0m · [0-9]{1,2}:[0-9]{2}" 0 "AGY_STATUSLINE_TIME_FORMAT=both"
+
+# 25. Time format: absolute
+run_test "Time format absolute renders target clock time" "$payload_time_test" "50%.*[0-9]{1,2}:[0-9]{2}" 0 "AGY_STATUSLINE_TIME_FORMAT=absolute"
+
+# 26. Git dirty status indicator (appends * when repository has uncommitted changes)
+payload_git_dirty='{
+  "model": {"id": "gemini-3.8-flash-med", "display_name": "3.8 Flash Med"},
+  "plan_tier": "Pro",
+  "agent_state": "idle",
+  "vcs": {"branch": "main"},
+  "cwd": "'"$ROOT_DIR"'",
+  "context_window": {"used_percentage": 10},
+  "terminal_width": 120
+}'
+run_test "Git dirty indicator appends asterisk when changes exist" "$payload_git_dirty" "main\*"
+
+# 27. Model aliases in config.json
+mkdir -p "$CONFIG_DIR"
+cat <<'EOF' > "$CONFIG_PATH"
+{
+  "model_aliases": {
+    "gemini-3.8-flash-med": "⚡ FastFlash"
+  }
+}
+EOF
+run_test "Model aliases in config.json customize model name" "$payload_cold" "FastFlash" 0 "AGY_STATUSLINE_THEME= AGY_STATUSLINE_GLYPHS="
+rm -f "$CONFIG_PATH"
+
+# 28. Performance latency benchmark (asserts average execution <= 35ms)
+bench_avg=$(python3 -c "
+import subprocess, time
+
+payload = '''$payload_cold'''
+# Warmup run
+subprocess.run(['$STATUSLINE'], input=payload, text=True, capture_output=True)
+
+runs = 5
+total = 0
+for _ in range(runs):
+    t0 = time.perf_counter()
+    subprocess.run(['$STATUSLINE'], input=payload, text=True, capture_output=True)
+    t1 = time.perf_counter()
+    total += (t1 - t0) * 1000
+
+print(int(total / runs))
+")
+
+if [ "$bench_avg" -le 35 ]; then
+    echo -e "  ${green}PASS${reset} Performance latency benchmark (${bench_avg}ms <= 35ms)"
+    pass_count=$((pass_count + 1))
+else
+    echo -e "  ${red}FAIL${reset} Performance latency benchmark (${bench_avg}ms > 35ms threshold)"
+    fail_count=$((fail_count + 1))
+fi
+
 echo -e "${dim}─────────────────────────────────────────────────${reset}"
 if [ "$fail_count" -eq 0 ]; then
     echo -e "${green}All $pass_count tests passed successfully!${reset}"

@@ -11,6 +11,9 @@ class AgyStatusline < Formula
     bin.install "bin/statusline.sh" => "agy-statusline"
     bin.install "bin/install.sh" => "agy-statusline-setup"
     bin.install "bin/uninstall.sh" => "agy-statusline-uninstall"
+
+    bash_completion.install "completions/agy-statusline.bash" => "agy-statusline"
+    zsh_completion.install "completions/agy-statusline.zsh" => "_agy-statusline"
   end
 
   def caveats

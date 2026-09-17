@@ -5,6 +5,23 @@ AGY_DIR="$HOME/.gemini/antigravity-cli"
 SETTINGS_FILE="$AGY_DIR/settings.json"
 STATUSLINE_DEST="$HOME/.gemini/statusline.sh"
 
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -y|--yes) shift ;;
+        -h|--help)
+            cat <<'EOF'
+Usage: uninstall.sh [OPTIONS]
+
+OPTIONS:
+  -y, --yes    Run in non-interactive/unattended mode
+  -h, --help   Show this help message
+EOF
+            exit 0
+            ;;
+        *) shift ;;
+    esac
+done
+
 blue='\033[38;5;111m'
 green='\033[38;5;155m'
 yellow='\033[38;5;221m'

@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -f
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 if [ "$1" = "--version" ] || [ "$1" = "-v" ]; then
     echo "agy-statusline 0.1.0"
     exit 0
@@ -15,18 +17,64 @@ USAGE:
   agy-statusline [OPTIONS]
 
 OPTIONS:
-  -h, --help       Show this help message and exit
-  -v, --version    Show version information and exit
-  -p, --preview    Render a sample statusline preview
+  -h, --help         Show this help message and exit
+  -v, --version      Show version information and exit
+  -p, --preview      Render a sample statusline preview
+  --setup [OPTIONS]  Run configuration setup wizard for Antigravity CLI
+  --uninstall        Uninstall statusline configuration and restore backup
+  --update           Update agy-statusline to the latest release
 
 ENVIRONMENT VARIABLES:
-  AGY_STATUSLINE_THEME   Color theme: tokyo-night, catppuccin, nord, solarized, light
-  AGY_STATUSLINE_GLYPHS  Glyph mode: nerd, unicode, ascii, none
+  AGY_STATUSLINE_THEME        Color theme: tokyo-night, catppuccin, nord, solarized, light
+  AGY_STATUSLINE_GLYPHS       Glyph mode: nerd, unicode, ascii, none
+  AGY_STATUSLINE_SEPARATOR    Separator style: bar, pipe, slant, bubble, slash, minimal
+  AGY_STATUSLINE_TIME_FORMAT  Time format: relative, absolute, both
 
 CONFIGURATION FILE:
   ~/.config/agy-statusline/config.json
 EOF
     exit 0
+fi
+
+if [ "$1" = "--setup" ]; then
+    if command -v agy-statusline-setup >/dev/null 2>&1; then
+        exec agy-statusline-setup "${@:2}"
+    elif [ -f "$SCRIPT_DIR/install.sh" ]; then
+        exec bash "$SCRIPT_DIR/install.sh" "${@:2}"
+    else
+        exec bash -c "$(curl -fsSL https://raw.githubusercontent.com/chahine/agy-statusline/main/bin/install.sh)" bash "${@:2}"
+    fi
+fi
+
+if [ "$1" = "--uninstall" ]; then
+    if command -v agy-statusline-uninstall >/dev/null 2>&1; then
+        exec agy-statusline-uninstall "${@:2}"
+    elif [ -f "$SCRIPT_DIR/uninstall.sh" ]; then
+        exec bash "$SCRIPT_DIR/uninstall.sh" "${@:2}"
+    else
+        exec bash -c "$(curl -fsSL https://raw.githubusercontent.com/chahine/agy-statusline/main/bin/uninstall.sh)"
+    fi
+fi
+
+if [ "$1" = "--update" ]; then
+    echo "Checking for agy-statusline updates..."
+    if command -v brew >/dev/null 2>&1 && brew list agy-statusline >/dev/null 2>&1; then
+        exec brew upgrade agy-statusline
+    elif [ -d "$SCRIPT_DIR/../.git" ]; then
+        (cd "$SCRIPT_DIR/.." && git pull --ff-only)
+        echo "Successfully updated agy-statusline via git."
+        exit 0
+    else
+        dest="$HOME/.gemini/statusline.sh"
+        if curl -fsSL "https://raw.githubusercontent.com/chahine/agy-statusline/main/bin/statusline.sh" -o "$dest"; then
+            chmod +x "$dest"
+            echo "Successfully updated $dest."
+            exit 0
+        else
+            echo "Failed to update statusline.sh."
+            exit 1
+        fi
+    fi
 fi
 
 if [ "$1" = "--preview" ] || [ "$1" = "-p" ] || { [ -t 0 ] && [ -z "$1" ]; }; then
@@ -86,6 +134,7 @@ else null end) as $qwk_pct |
 
 [
   "raw_model=\($raw_model | @sh)",
+  "model_id=\($model_id | @sh)",
   "model=\($model | @sh)",
   "plan=\($plan | @sh)",
   "cwd=\($cwd | @sh)",
@@ -121,14 +170,16 @@ if [ -z "$q5h_pct" ] && [ -f "$CACHE_FILE" ]; then
 fi
 
 # Directory basename (pure Bash, 0 subshells)
-[ -z "$cwd" ] && cwd=$(pwd)
+[ -z "$cwd" ] && cwd="${PWD:-.}"
 cwd_name="${cwd##*/}"
 [ -z "$cwd_name" ] && cwd_name="$cwd"
 
 # VCS branch (pure Bash fallback, only query git if not supplied by agy)
 git_branch="$vcs_branch"
-if [ -z "$git_branch" ]; then
-    if git -C "$cwd" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+is_git=0
+if [ -d "$cwd" ] && git -C "$cwd" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    is_git=1
+    if [ -z "$git_branch" ]; then
         git_branch=$(git -C "$cwd" symbolic-ref --short HEAD 2>/dev/null \
                   || git -C "$cwd" rev-parse --short HEAD 2>/dev/null)
     fi
@@ -151,18 +202,38 @@ state_name="${uc}${agent_state:1}"
 CONFIG_FILE="$HOME/.config/agy-statusline/config.json"
 cfg_theme=""
 cfg_glyphs=""
+cfg_separator=""
+cfg_time_format=""
+cfg_git_dirty=""
+cfg_alias=""
 
 if [ -f "$CONFIG_FILE" ]; then
-    eval "$(jq -r '
+    eval "$(jq -r --arg m "$raw_model" --arg mid "$model_id" --arg mod "$model" '
       [
         "cfg_theme=\((.theme // "") | @sh)",
-        "cfg_glyphs=\((.glyphs // "") | @sh)"
+        "cfg_glyphs=\((.glyphs // "") | @sh)",
+        "cfg_separator=\((.separator // "") | @sh)",
+        "cfg_time_format=\((.time_format // "") | @sh)",
+        "cfg_git_dirty=\((if .show_git_dirty == false then "0" else "1" end) | @sh)",
+        "cfg_alias=\((.model_aliases[$m] // .model_aliases[$mid] // .model_aliases[$mod] // "") | @sh)"
       ] | .[]
     ' "$CONFIG_FILE" 2>/dev/null || true)"
 fi
 
 theme="${AGY_STATUSLINE_THEME:-${cfg_theme:-tokyo-night}}"
 glyph_mode="${AGY_STATUSLINE_GLYPHS:-${cfg_glyphs:-nerd}}"
+sep_style="${AGY_STATUSLINE_SEPARATOR:-${cfg_separator:-bar}}"
+time_style="${AGY_STATUSLINE_TIME_FORMAT:-${cfg_time_format:-relative}}"
+show_dirty="${AGY_STATUSLINE_GIT_DIRTY:-${cfg_git_dirty:-1}}"
+
+[ -n "$cfg_alias" ] && model="$cfg_alias"
+
+# Check for uncommitted changes in git working tree
+if [ "$is_git" -eq 1 ] && [ "$show_dirty" = "1" ]; then
+    if ! git -C "$cwd" diff --quiet 2>/dev/null || ! git -C "$cwd" diff --cached --quiet 2>/dev/null; then
+        git_branch="${git_branch}*"
+    fi
+fi
 
 # Auto-detect Linux console / no-nerd-fonts
 if [ "$glyph_mode" = "nerd" ] && { [ "$TERM" = "linux" ] || [ -n "$NO_NERD_FONTS" ]; }; then
@@ -222,8 +293,7 @@ case "$theme" in
         c_git="\033[1;38;2;203;166;247m"    # Mauve (#cba6f7)
         c_label="\033[1;38;2;205;214;244m"  # Text (#cdd6f4)
         c_track="\033[38;2;69;71;90m"       # Surface1 (#45475a)
-        c_sep="\033[38;2;108;112;134m │ \033[0m"
-        c_subsep="\033[38;2;108;112;134m | \033[0m"
+        c_sep_color="\033[38;2;108;112;134m"
         c_muted="\033[38;2;166;173;200m"    # Subtext0 (#a6adc8)
         c_state_norm="\033[1;38;2;166;227;161m" # Green (#a6e3a1)
         c_state_run="\033[1;38;2;243;139;168m"  # Red (#f38ba8)
@@ -239,8 +309,7 @@ case "$theme" in
         c_git="\033[1;38;2;180;142;173m"    # Purple (#b48ead)
         c_label="\033[1;38;2;236;239;244m"  # Snow White (#eceff4)
         c_track="\033[38;2;59;66;82m"       # Polar Night (#3b4252)
-        c_sep="\033[38;2;76;86;106m │ \033[0m"
-        c_subsep="\033[38;2;76;86;106m | \033[0m"
+        c_sep_color="\033[38;2;76;86;106m"
         c_muted="\033[38;2;216;222;233m"
         c_state_norm="\033[1;38;2;163;190;140m" # Green (#a3be8c)
         c_state_run="\033[1;38;2;191;97;106m"   # Red (#bf616a)
@@ -256,8 +325,7 @@ case "$theme" in
         c_git="\033[1;38;2;211;54;130m"     # Magenta (#d33682)
         c_label="\033[1;38;2;238;232;213m"  # Base2 (#eee8d5)
         c_track="\033[38;2;7;54;66m"        # Base02 (#073642)
-        c_sep="\033[38;2;88;110;117m │ \033[0m"
-        c_subsep="\033[38;2;88;110;117m | \033[0m"
+        c_sep_color="\033[38;2;88;110;117m"
         c_muted="\033[38;2;147;161;161m"
         c_state_norm="\033[1;38;2;133;153;0m"   # Green (#859900)
         c_state_run="\033[1;38;2;220;50;47m"    # Red (#dc322f)
@@ -273,8 +341,7 @@ case "$theme" in
         c_git="\033[1;38;2;125;35;180m"     # Plum Purple
         c_label="\033[1;38;2;30;35;45m"     # Charcoal
         c_track="\033[38;2;210;215;225m"    # Light Gray Track
-        c_sep="\033[38;2;140;150;165m │ \033[0m"
-        c_subsep="\033[38;2;140;150;165m | \033[0m"
+        c_sep_color="\033[38;2;140;150;165m"
         c_muted="\033[38;2;90;100;115m"
         c_state_norm="\033[1;38;2;0;135;60m"    # Forest Green
         c_state_run="\033[1;38;2;200;25;25m"    # Crimson
@@ -290,8 +357,7 @@ case "$theme" in
         c_git="\033[1;38;2;217;70;239m"        # Electric Orchid (#d946ef)
         c_label="\033[1;38;2;240;246;252m"     # High-Luminance White
         c_track="\033[38;2;50;60;75m"          # Dark Slate Track
-        c_sep="\033[38;2;110;120;145m │ \033[0m"
-        c_subsep="\033[38;2;110;120;145m | \033[0m"
+        c_sep_color="\033[38;2;110;120;145m"
         c_muted="\033[38;2;160;175;195m"       # Crisp Muted Timer
         c_state_norm="\033[1;38;2;0;230;118m"  # Bright Neon Green (#00e676)
         c_state_run="\033[1;38;2;255;61;0m"    # Hot Red-Orange (#ff3d00)
@@ -302,6 +368,36 @@ case "$theme" in
         ;;
 esac
 reset="\033[0m"
+
+# Separator style rendering
+case "$sep_style" in
+    slant)
+        s_main="  "
+        s_sub="  "
+        ;;
+    bubble)
+        s_main="  "
+        s_sub="  "
+        ;;
+    pipe)
+        s_main=" | "
+        s_sub=" | "
+        ;;
+    slash)
+        s_main=" / "
+        s_sub=" / "
+        ;;
+    minimal)
+        s_main="  "
+        s_sub="  "
+        ;;
+    *) # bar (default)
+        s_main=" │ "
+        s_sub=" | "
+        ;;
+esac
+c_sep="${c_sep_color}${s_main}${reset}"
+c_subsep="${c_sep_color}${s_sub}${reset}"
 
 # Dynamic agent state colors
 case "$agent_state" in
@@ -351,15 +447,40 @@ fmt_duration() {
     mins=$(( mins - days * 24 * 60 ))
     local hours=$(( mins / 60 ))
     mins=$(( mins % 60 ))
+    local rel_str=""
     if [ "$days" -gt 0 ]; then
-        printf "%dd %dh" "$days" "$hours"
+        rel_str=$(printf "%dd %dh" "$days" "$hours")
     elif [ "$hours" -gt 0 ]; then
-        printf "%dh %dm" "$hours" "$mins"
+        rel_str=$(printf "%dh %dm" "$hours" "$mins")
     else
-        printf "%dm" "$mins"
+        rel_str=$(printf "%dm" "$mins")
     fi
+
+    if [ "$time_style" = "absolute" ] || [ "$time_style" = "both" ]; then
+        local now abs_str=""
+        now=$(date +%s 2>/dev/null || echo 0)
+        if [ "$now" -gt 0 ]; then
+            local target=$(( now + sec ))
+            abs_str=$(date -r "$target" +"%H:%M" 2>/dev/null || date -d "@$target" +"%H:%M" 2>/dev/null || true)
+        fi
+        if [ -n "$abs_str" ]; then
+            if [ "$time_style" = "absolute" ]; then
+                printf "%s" "$abs_str"
+                return
+            else
+                local sep_both=" · "
+                [ "$glyph_mode" = "ascii" ] && sep_both=" / "
+                printf "%s%s%s" "$rel_str" "$sep_both" "$abs_str"
+                return
+            fi
+        fi
+    fi
+
+    printf "%s" "$rel_str"
 }
 
+BAR_FULL="████████████"
+BAR_EMPTY="░░░░░░░░░░░░"
 make_bar() {
     local pct=${1%.*}
     pct=${pct:-0}
@@ -376,9 +497,8 @@ make_bar() {
         col="$c_bar_med"
     fi
 
-    local filled_str="" empty_str="" i
-    for (( i=0; i<filled_n; i++ )); do filled_str+="█"; done
-    for (( i=0; i<empty_n;  i++ )); do empty_str+="░"; done
+    local filled_str="${BAR_FULL:0:filled_n}"
+    local empty_str="${BAR_EMPTY:0:empty_n}"
 
     printf "%b%s%b%s%b" "$col" "$filled_str" "$c_track" "$empty_str" "$reset"
 }
@@ -389,7 +509,12 @@ line1="${c_model}${i_model}${model}${reset}${c_subsep}${c_tier}${i_tier}${plan}$
 
 # Line 2: Context & Telemetry
 ctx_bar=$(make_bar "$ctx_pct" "$bar_width")
-line2="${c_label}${i_ctx}${lbl_ctx}${reset} ${ctx_bar} ${ctx_pct}%"
+if [ "$ctx_pct" -ge 95 ]; then
+    c_alert="\033[7;1;38;2;255;75;75m"
+    line2="${c_label}${i_ctx}${lbl_ctx}${reset} ${ctx_bar} ${c_alert} ${ctx_pct}%! ${reset}"
+else
+    line2="${c_label}${i_ctx}${lbl_ctx}${reset} ${ctx_bar} ${ctx_pct}%"
+fi
 
 if [ -n "$q5h_pct" ]; then
     u5h_bar=$(make_bar "$q5h_pct" "$bar_width")
@@ -404,7 +529,7 @@ if [ -n "$q5h_pct" ]; then
         durwk=$(fmt_duration "$qwk_sec")
         resetwk=""
         [ -n "$durwk" ] && resetwk=" (${c_muted}${i_clock}${durwk}${reset})"
-        usage_str="${usage_str} |  ${uwk_bar} ${qwk_pct}%${resetwk}"
+        usage_str="${usage_str}${c_subsep}${uwk_bar} ${qwk_pct}%${resetwk}"
     fi
 
     line2="${line2}${c_sep}${usage_str}"

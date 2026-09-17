@@ -32,7 +32,11 @@ agy-statusline-setup
 ### Option 2: 1-Line Remote Install (curl)
 
 ```bash
+# Interactive setup wizard
 curl -fsSL https://raw.githubusercontent.com/chahine/agy-statusline/main/bin/install.sh | bash
+
+# Headless / unattended setup (accepts all defaults)
+curl -fsSL https://raw.githubusercontent.com/chahine/agy-statusline/main/bin/install.sh | bash -s -- -y
 ```
 
 ### Option 3: Manual Clone
@@ -48,15 +52,18 @@ bash bin/install.sh
 ## Features
 
 - **Clean 2-Line HUD**: Separates workspace and VCS identity (Line 1) from live telemetry and rate limits (Line 2).
-- **Single-Pass & Zero-Subshell Performance**: 100% pure Bash parameter expansions and single-pass `jq` execution for sub-15ms rendering without terminal flicker.
-- **Model & Plan Intelligence**: Parses and formats official and 3rd-party models (`3.8 Flash Med`, `Sonnet 3.7`, `Pro`, `Free`).
+- **Sub-35ms Single-Pass Performance**: 100% pure Bash parameter expansions and single-pass `jq` execution for 20-25ms rendering without terminal flicker.
+- **Git Working Tree Dirty Detection**: Automatically detects uncommitted and staged modifications in current repo and appends a dirty indicator (`*`).
+- **Model & Plan Intelligence**: Parses and formats official and 3rd-party models (`3.8 Flash Med`, `Sonnet 3.7`, `Pro`, `Free`) with custom alias mapping.
 - **Dynamic Agent Lifecycle**: Color-coded live agent state indicator (`● Idle`, `● Thinking`, `● Running`).
-- **Dynamic Context Window Bar**: 10-step progress bar (`█`/`░`) colored dynamically by consumption percentage (green, gold, red).
-- **Dual Rolling Quota Monitors**: Real-time 5-hour rolling session quota and 7-day weekly quota gauges with live reset countdown timers (`4h 51m`, `3d 13h`).
+- **Dynamic Context Window Bar & Alert Highlight**: 10-step progress bar (`█`/`░`) colored dynamically by consumption percentage, with inverted coral red alert on critical usage ($\ge 95\%$).
+- **Dual Rolling Quota Monitors**: Real-time 5-hour rolling session quota and 7-day weekly quota gauges with countdown reset timers (`4h 51m`, `3d 13h`).
+- **Flexible Time Formats**: Support for `relative` countdown durations, `absolute` clock times (`17:25`), or `both` (`4h 51m · 17:25`).
+- **6 Configurable Separators**: `bar` (`│`), `pipe` (`|`), `slant` (``), `bubble` (``), `slash` (`/`), and `minimal` spaces.
 - **Responsive Width Adaptation**: Automatically compacts labels, narrows progress bars, truncates long branches, and drops weekly quota on narrow terminals (<95, <80, <75, <68 cols) to prevent ugly line wraps.
 - **5 Handcrafted Truecolor Themes**: `tokyo-night` (default), `catppuccin`, `nord`, `solarized`, and `light`.
 - **4 Font Glyph Modes**: Support for `nerd` icons, standard universal `unicode` emojis, plain text `ascii` brackets, or clean text `none`.
-- **Interactive CLI & Automated Testing**: Includes `--preview`, `--help`, `--version` CLI flags and a 20-test regression suite verified across macOS and Ubuntu in CI.
+- **Interactive Setup Wizard & Shell Completions**: Terminal configuration wizard, unattended mode (`-y`), Bash and Zsh tab-completions, and a 28-test automated regression suite with execution latency verification.
 
 ---
 
@@ -114,6 +121,8 @@ When context or quota exceeds 90%, progress bars dynamically change to warning c
 
 ## Themes & Glyphs
 
+For full ANSI color tables and visual mockups of every theme, see the **[Theme & Styling Gallery](docs/themes.md)**.
+
 ### Color Themes
 
 `agy-statusline` includes 5 handcrafted truecolor (24-bit ANSI) themes:
@@ -132,10 +141,27 @@ Configure glyph rendering to match your terminal font environment:
 
 | Mode | Example Output | Best Suited For |
 |:---|:---|:---|
-| `nerd` *(default)* | ` 3.8 Flash Med \|  Pro │  project │  main │ ● Idle` | Terminals with JetBrainsMono or any Nerd Font |
-| `unicode` | `⚡ 3.8 Flash Med \| ✦ Pro │ 📁 project │ ⎇ main │ ● Idle` | Universal Unicode emojis and symbols |
-| `ascii` | `[M] 3.8 Flash Med \| [P] Pro │ [D] project │ [B] main │ * Idle` | TTYs, SSH sessions, and plain-text purists |
-| `none` | `3.8 Flash Med \| Pro │ project │ main │ ● Idle` | Clean minimalist display without icons or prefixes |
+| `nerd` *(default)* | ` 3.8 Flash Med \|  Pro │  project │  main* │ ● Idle` | Terminals with JetBrainsMono or any Nerd Font |
+| `unicode` | `⚡ 3.8 Flash Med \| ✦ Pro │ 📁 project │ ⎇ main* │ ● Idle` | Universal Unicode emojis and symbols |
+| `ascii` | `[M] 3.8 Flash Med \| [P] Pro │ [D] project │ [B] main* │ * Idle` | TTYs, SSH sessions, and plain-text purists |
+| `none` | `3.8 Flash Med \| Pro │ project │ main* │ ● Idle` | Clean minimalist display without icons or prefixes |
+
+### Separator Styles
+
+Customize segment dividers via `"separator"` in `config.json` or `AGY_STATUSLINE_SEPARATOR`:
+- `bar` *(default)*: ` │ ` (sub-separator ` | `)
+- `pipe`: ` | `
+- `slant`: `  `
+- `bubble`: `  `
+- `slash`: ` / `
+- `minimal`: `  ` (spaces only)
+
+### Time Formats
+
+Customize reset countdown display via `"time_format"` in `config.json` or `AGY_STATUSLINE_TIME_FORMAT`:
+- `relative` *(default)*: `( 4h 55m)`
+- `absolute`: `( 17:25)`
+- `both`: `( 4h 55m · 17:25)`
 
 ---
 
@@ -146,15 +172,26 @@ You can configure your preferences permanently via `~/.config/agy-statusline/con
 ```json
 {
   "theme": "tokyo-night",
-  "glyphs": "nerd"
+  "glyphs": "nerd",
+  "separator": "bar",
+  "time_format": "relative",
+  "show_git_dirty": true,
+  "model_aliases": {
+    "gemini-3.8-flash-med": "3.8 Flash Med",
+    "gemini-3.1-pro": "3.1 Pro",
+    "claude-3-7-sonnet": "Sonnet 3.7"
+  }
 }
 ```
 
-Or override them dynamically in your shell profile (`~/.bashrc`, `~/.zshrc`):
+Or override them dynamically via environment variables in your shell profile (`~/.bashrc`, `~/.zshrc`):
 
 ```bash
-export AGY_STATUSLINE_THEME="catppuccin"   # tokyo-night, catppuccin, nord, solarized, light
-export AGY_STATUSLINE_GLYPHS="unicode"    # nerd, unicode, ascii, none
+export AGY_STATUSLINE_THEME="catppuccin"        # tokyo-night, catppuccin, nord, solarized, light
+export AGY_STATUSLINE_GLYPHS="unicode"         # nerd, unicode, ascii, none
+export AGY_STATUSLINE_SEPARATOR="slash"        # bar, pipe, slant, bubble, slash, minimal
+export AGY_STATUSLINE_TIME_FORMAT="both"       # relative, absolute, both
+export AGY_STATUSLINE_GIT_DIRTY="1"            # 1 to show *, 0 to disable
 ```
 
 ---
@@ -179,15 +216,25 @@ When installed via Homebrew or available in your `$PATH`:
 # Render a live interactive preview using current terminal dimensions & branch
 agy-statusline --preview
 
+# Run the interactive configuration setup wizard
+agy-statusline --setup
+# Or run non-interactively with unattended defaults:
+agy-statusline --setup -y
+
+# Check for updates and upgrade to the latest release
+agy-statusline --update
+
+# Uninstall statusline configuration and restore previous backup
+agy-statusline --uninstall
+
 # Display help and available options
 agy-statusline --help
 
 # Check version
 agy-statusline --version
-
-# Re-run configuration or setup for Antigravity CLI
-agy-statusline-setup
 ```
+
+*(Bash and Zsh shell completions are automatically installed with Homebrew or copied to `~/.config/agy-statusline/completions/`)*
 
 ---
 
@@ -208,7 +255,7 @@ To render icons (`    󰍛  `) properly in default `nerd` mode
 
 ## Automated Testing
 
-`agy-statusline` includes a 20-test regression suite covering cold starts, running/thinking states, warning thresholds, Claude/3P model pools, responsive breakpoints, glyph engines, theme switching, and CLI flags.
+`agy-statusline` includes a 28-test regression suite covering cold starts, running/thinking states, warning thresholds, critical context highlight alerts, Claude/3P model pools, git dirty status, custom separators, time format modes, model aliases, responsive breakpoints, glyph engines, theme switching, CLI flags, and a sub-35ms performance benchmark.
 
 Run the test suite locally:
 

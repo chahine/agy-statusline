@@ -7,6 +7,58 @@ SETTINGS_FILE="$AGY_DIR/settings.json"
 STATUSLINE_DEST="$HOME/.gemini/statusline.sh"
 STATUSLINE_SRC="$SCRIPT_DIR/statusline.sh"
 
+unattended="n"
+custom_theme=""
+custom_glyphs=""
+custom_separator=""
+custom_time_format=""
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -y|--yes)
+            unattended="y"
+            shift
+            ;;
+        --theme)
+            custom_theme="$2"
+            shift 2
+            ;;
+        --glyphs)
+            custom_glyphs="$2"
+            shift 2
+            ;;
+        --separator)
+            custom_separator="$2"
+            shift 2
+            ;;
+        --time-format)
+            custom_time_format="$2"
+            shift 2
+            ;;
+        -h|--help)
+            cat <<'EOF'
+Usage: install.sh [OPTIONS]
+
+OPTIONS:
+  -y, --yes                   Run in non-interactive/unattended mode
+  --theme <name>              Preset theme (tokyo-night, catppuccin, nord, solarized, light)
+  --glyphs <mode>             Preset glyph mode (nerd, unicode, ascii, none)
+  --separator <style>         Preset separator (bar, pipe, slant, bubble, slash, minimal)
+  --time-format <fmt>         Preset time format (relative, absolute, both)
+  -h, --help                  Show this help message
+EOF
+            exit 0
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
+
+if [ ! -t 0 ]; then
+    unattended="y"
+fi
+
 blue='\033[38;5;111m'
 green='\033[38;5;155m'
 red='\033[38;5;203m'
@@ -110,7 +162,7 @@ if [ -n "$detected_font" ]; then
 else
     warn "No Nerd Font or Powerline font detected in standard font paths."
     do_install="n"
-    if [ -t 0 ]; then
+    if [ "$unattended" != "y" ] && [ -t 0 ]; then
         echo -en "  ${yellow}?${reset} Would you like to automatically install JetBrainsMono Nerd Font now? [Y/n]: "
         read -r reply
         reply=$(echo "$reply" | tr '[:upper:]' '[:lower:]')
@@ -151,20 +203,105 @@ else
     ok "Installed statusline to ${dim}$STATUSLINE_DEST${reset}"
 fi
 
-# ── 4b. Configure agy-statusline defaults ─────────────────────
+# ── 4b. Configure agy-statusline defaults & Wizard ───────────
 STATUSLINE_CONFIG_DIR="$HOME/.config/agy-statusline"
+mkdir -p "$STATUSLINE_CONFIG_DIR"
+
+chosen_theme="${custom_theme:-tokyo-night}"
+chosen_glyphs="${custom_glyphs:-nerd}"
+chosen_separator="${custom_separator:-bar}"
+chosen_time_format="${custom_time_format:-relative}"
+
+if [ "$unattended" != "y" ] && [ -t 0 ] && [ ! -f "$STATUSLINE_CONFIG_DIR/config.json" ]; then
+    echo
+    echo -e "  ${cyan}Configuration Wizard${reset}"
+    echo -e "  ${dim}────────────────────────────────────────────────────────────────────────${reset}"
+
+    echo -e "  Select color theme:"
+    echo -e "    ${green}1)${reset} Tokyo Night ${dim}(Default - High-contrast vibrant dark)${reset}"
+    echo -e "    ${green}2)${reset} Catppuccin  ${dim}(Mocha soft pastel palette)${reset}"
+    echo -e "    ${green}3)${reset} Nord        ${dim}(Arctic cold frost blue)${reset}"
+    echo -e "    ${green}4)${reset} Solarized   ${dim}(Classic solarized dark)${reset}"
+    echo -e "    ${green}5)${reset} Light       ${dim}(High-contrast daylight theme)${reset}"
+    echo -en "  Choice [1-5, default 1]: "
+    read -r t_choice
+    case "$t_choice" in
+        2) chosen_theme="catppuccin" ;;
+        3) chosen_theme="nord" ;;
+        4) chosen_theme="solarized" ;;
+        5) chosen_theme="light" ;;
+        *) chosen_theme="tokyo-night" ;;
+    esac
+
+    echo
+    echo -e "  Select glyph mode:"
+    echo -e "    ${green}1)${reset} Nerd Font ${dim}(Default -     󰍛  )${reset}"
+    echo -e "    ${green}2)${reset} Unicode   ${dim}(Standard UTF-8 - ⚡ ✦ 📁 ⎇ 🧠 ⚡ 🕒)${reset}"
+    echo -e "    ${green}3)${reset} ASCII     ${dim}(Pure text - [M] [P] [D] [B] [C] [U])${reset}"
+    echo -e "    ${green}4)${reset} None      ${dim}(No icons, minimal text labels)${reset}"
+    echo -en "  Choice [1-4, default 1]: "
+    read -r g_choice
+    case "$g_choice" in
+        2) chosen_glyphs="unicode" ;;
+        3) chosen_glyphs="ascii" ;;
+        4) chosen_glyphs="none" ;;
+        *) chosen_glyphs="nerd" ;;
+    esac
+
+    echo
+    echo -e "  Select separator style:"
+    echo -e "    ${green}1)${reset} Bar     ${dim}(Default - │)${reset}"
+    echo -e "    ${green}2)${reset} Pipe    ${dim}(|)${reset}"
+    echo -e "    ${green}3)${reset} Slant   ${dim}(Powerline slant )${reset}"
+    echo -e "    ${green}4)${reset} Bubble  ${dim}(Powerline bubble )${reset}"
+    echo -e "    ${green}5)${reset} Slash   ${dim}(/)${reset}"
+    echo -e "    ${green}6)${reset} Minimal ${dim}(Spaces only)${reset}"
+    echo -en "  Choice [1-6, default 1]: "
+    read -r s_choice
+    case "$s_choice" in
+        2) chosen_separator="pipe" ;;
+        3) chosen_separator="slant" ;;
+        4) chosen_separator="bubble" ;;
+        5) chosen_separator="slash" ;;
+        6) chosen_separator="minimal" ;;
+        *) chosen_separator="bar" ;;
+    esac
+    echo
+fi
+
 if [ ! -f "$STATUSLINE_CONFIG_DIR/config.json" ]; then
-    mkdir -p "$STATUSLINE_CONFIG_DIR"
-    cat <<'EOF' > "$STATUSLINE_CONFIG_DIR/config.json"
+    cat <<EOF > "$STATUSLINE_CONFIG_DIR/config.json"
 {
-  "theme": "tokyo-night",
-  "glyphs": "nerd"
+  "theme": "$chosen_theme",
+  "glyphs": "$chosen_glyphs",
+  "separator": "$chosen_separator",
+  "time_format": "$chosen_time_format",
+  "show_git_dirty": true
 }
 EOF
     ok "Created statusline configuration at ${dim}$STATUSLINE_CONFIG_DIR/config.json${reset}"
+else
+    if [ -n "$custom_theme" ] || [ -n "$custom_glyphs" ] || [ -n "$custom_separator" ] || [ -n "$custom_time_format" ]; then
+        tmp=$(mktemp)
+        jq \
+          --arg t "$chosen_theme" \
+          --arg g "$chosen_glyphs" \
+          --arg s "$chosen_separator" \
+          --arg tf "$chosen_time_format" \
+          '. + {theme: $t, glyphs: $g, separator: $s, time_format: $tf}' \
+          "$STATUSLINE_CONFIG_DIR/config.json" > "$tmp" && mv "$tmp" "$STATUSLINE_CONFIG_DIR/config.json"
+        ok "Updated statusline configuration at ${dim}$STATUSLINE_CONFIG_DIR/config.json${reset}"
+    fi
 fi
 
-# ── 4c. Configure HUD defaults if agy-hud present ───────────
+# ── 4c. Install Shell Completions ────────────────────────────
+if [ -d "$SCRIPT_DIR/../completions" ]; then
+    mkdir -p "$STATUSLINE_CONFIG_DIR/completions"
+    cp -r "$SCRIPT_DIR/../completions/"* "$STATUSLINE_CONFIG_DIR/completions/" 2>/dev/null || true
+    ok "Installed shell completions in ${dim}$STATUSLINE_CONFIG_DIR/completions${reset}"
+fi
+
+# ── 4d. Configure HUD defaults if agy-hud present ───────────
 HUD_CONFIG_DIR="$HOME/.config/agy-hud"
 if [ ! -f "$HUD_CONFIG_DIR/config.json" ]; then
     mkdir -p "$HUD_CONFIG_DIR"
@@ -233,7 +370,7 @@ echo -e "  ${blue}└───────────────────�
 echo
 
 # ── 7. Interactive Acknowledgment ────────────────────────────
-if [ -t 0 ]; then
+if [ "$unattended" != "y" ] && [ -t 0 ]; then
     echo -en "  ${yellow}→${reset} Once you have updated your terminal font, press ${green}[Enter]${reset} to finish: "
     read -r _
     echo
