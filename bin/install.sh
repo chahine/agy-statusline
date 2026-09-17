@@ -26,10 +26,10 @@ echo -e "  ${dim}─────────────────────
 echo
 
 # ── 1. Check CLI dependencies ────────────────────────────────
-for dep in jq git; do
+for dep in jq git curl; do
     command -v "$dep" >/dev/null 2>&1 || fail "Missing dependency: $dep  →  install it and retry"
 done
-ok "Dependencies found (jq, git)"
+ok "Dependencies found (jq, git, curl)"
 
 # ── 2. Check agy directory ───────────────────────────────────
 [ -d "$AGY_DIR" ] || fail "Antigravity CLI not found at $AGY_DIR — is agy installed?"
@@ -124,21 +124,47 @@ else
             font_label="JetBrainsMono Nerd Font"
         fi
     else
-        warn "Skipping font install. Note that arrow glyphs () require a Nerd Font to render correctly."
+        warn "Skipping font install. Note that Nerd Font icons (    󰍛  ) require a Nerd Font (or set AGY_STATUSLINE_GLYPHS=unicode / ascii)."
     fi
 fi
 
-# ── 4. Copy statusline script ────────────────────────────────
-if [ -f "$STATUSLINE_DEST" ]; then
-    cp "$STATUSLINE_DEST" "${STATUSLINE_DEST}.bak"
-    warn "Backed up existing statusline to ${dim}${STATUSLINE_DEST}.bak${reset}"
+# ── 4. Locate or install statusline executable ───────────────
+if command -v agy-statusline >/dev/null 2>&1; then
+    STATUS_CMD="agy-statusline"
+    RUNNER="agy-statusline"
+    ok "Found agy-statusline in PATH (${dim}$(command -v agy-statusline)${reset})"
+else
+    STATUS_CMD='bash "$HOME/.gemini/statusline.sh"'
+    RUNNER="$STATUSLINE_DEST"
+    if [ -f "$STATUSLINE_DEST" ]; then
+        cp "$STATUSLINE_DEST" "${STATUSLINE_DEST}.bak"
+        warn "Backed up existing statusline to ${dim}${STATUSLINE_DEST}.bak${reset}"
+    fi
+
+    if [ -f "$STATUSLINE_SRC" ]; then
+        cp "$STATUSLINE_SRC" "$STATUSLINE_DEST"
+    else
+        info "Fetching statusline.sh from GitHub repository..."
+        curl -fsSL "https://raw.githubusercontent.com/chahine/agy-statusline/main/bin/statusline.sh" -o "$STATUSLINE_DEST" || fail "Failed to download statusline.sh from GitHub"
+    fi
+    chmod +x "$STATUSLINE_DEST"
+    ok "Installed statusline to ${dim}$STATUSLINE_DEST${reset}"
 fi
 
-cp "$STATUSLINE_SRC" "$STATUSLINE_DEST"
-chmod +x "$STATUSLINE_DEST"
-ok "Installed statusline to ${dim}$STATUSLINE_DEST${reset}"
+# ── 4b. Configure agy-statusline defaults ─────────────────────
+STATUSLINE_CONFIG_DIR="$HOME/.config/agy-statusline"
+if [ ! -f "$STATUSLINE_CONFIG_DIR/config.json" ]; then
+    mkdir -p "$STATUSLINE_CONFIG_DIR"
+    cat <<'EOF' > "$STATUSLINE_CONFIG_DIR/config.json"
+{
+  "theme": "tokyo-night",
+  "glyphs": "nerd"
+}
+EOF
+    ok "Created statusline configuration at ${dim}$STATUSLINE_CONFIG_DIR/config.json${reset}"
+fi
 
-# ── 4b. Configure HUD defaults if agy-hud present ───────────
+# ── 4c. Configure HUD defaults if agy-hud present ───────────
 HUD_CONFIG_DIR="$HOME/.config/agy-hud"
 if [ ! -f "$HUD_CONFIG_DIR/config.json" ]; then
     mkdir -p "$HUD_CONFIG_DIR"
@@ -165,7 +191,6 @@ if [ ! -f "$SETTINGS_FILE" ]; then
     echo '{}' > "$SETTINGS_FILE"
 fi
 
-STATUS_CMD='bash "$HOME/.gemini/statusline.sh"'
 CURRENT_CMD=$(jq -r '.statusLine.command // ""' "$SETTINGS_FILE" 2>/dev/null || true)
 
 if [ "$CURRENT_CMD" = "$STATUS_CMD" ]; then
@@ -218,6 +243,6 @@ echo -e "  ${green}All set!${reset} Status line installed. Preview:"
 echo
 cols=$(tput cols 2>/dev/null || echo 120)
 [ "$cols" -lt 100 ] && cols=120
-printf '{"model":{"id":"gemini-3.8-flash-med","display_name":"3.8 Flash Med"},"plan_tier":"Google AI Pro","agent_state":"idle","vcs":{"branch":"main"},"cwd":"%s","context_window":{"used_percentage":11},"quota":{"gemini-5h":{"remaining_fraction":0.04,"reset_in_seconds":17460},"gemini-weekly":{"remaining_fraction":0.43,"reset_in_seconds":306000}},"terminal_width":%d}' "$(pwd)" "$cols" | "$STATUSLINE_DEST"
+printf '{"model":{"id":"gemini-3.8-flash-med","display_name":"3.8 Flash Med"},"plan_tier":"Google AI Pro","agent_state":"idle","vcs":{"branch":"main"},"cwd":"%s","context_window":{"used_percentage":11},"quota":{"gemini-5h":{"remaining_fraction":0.04,"reset_in_seconds":17460},"gemini-weekly":{"remaining_fraction":0.43,"reset_in_seconds":306000}},"terminal_width":%d}' "$(pwd)" "$cols" | "$RUNNER"
 echo
 echo

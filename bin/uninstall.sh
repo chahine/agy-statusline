@@ -35,6 +35,13 @@ elif [ -f "$STATUSLINE_DEST" ]; then
     ok "Removed ${dim}$STATUSLINE_DEST${reset}"
 fi
 
+# ── Remove configuration directory ────────────────────────────
+CONFIG_DIR="$HOME/.config/agy-statusline"
+if [ -d "$CONFIG_DIR" ]; then
+    rm -rf "$CONFIG_DIR"
+    ok "Removed configuration directory ${dim}$CONFIG_DIR${reset}"
+fi
+
 echo
 echo -e "  ${green}Done!${reset} Statusline uninstalled. Restart agy to apply changes."
 echo

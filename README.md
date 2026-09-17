@@ -1,8 +1,15 @@
 # agy-statusline
 
-A fast, beautiful 2-line status line for Google DeepMind's **Antigravity CLI (`agy`)**.
+<p align="center">
+  <a href="https://github.com/chahine/agy-statusline/releases"><img src="https://img.shields.io/badge/version-0.1.0-blue.svg" alt="Version 0.1.0"></a>
+  <a href="https://brew.sh"><img src="https://img.shields.io/badge/brew-agy--statusline-orange.svg" alt="Homebrew"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License MIT"></a>
+  <img src="https://img.shields.io/badge/bash-3.2%2B-lightgrey.svg" alt="Bash 3.2+">
+</p>
 
-Displays active model and tier, workspace directory, git branch, agent execution state, live context window usage, and rolling 5-hour and weekly quota gauges with countdown reset timers.
+A fast, lightweight, and beautiful 2-line status line for Google DeepMind's **Antigravity CLI (`agy`)**.
+
+Displays active model and subscription tier, current workspace directory, active git branch, agent execution lifecycle state, real-time context window usage, and rolling 5-hour and weekly quota gauges with countdown reset timers.
 
 <p align="center">
   <img src="docs/preview.svg" alt="agy-statusline preview" width="100%">
@@ -10,39 +17,67 @@ Displays active model and tier, workspace directory, git branch, agent execution
 
 ---
 
-## Features
+## Installation
 
-- **2-Line HUD Layout**: Clean multi-line layout separating workspace identity from live telemetry and rate limits.
-- **Model & Plan Display**: Shortened model name (`3.8 Flash Med`, `Sonnet 3.7`, etc.) along with current plan tier (`Pro` / `Free`).
-- **Workspace & Git**: Shows current repository folder and active branch.
-- **Agent Lifecycle State**: Color-coded live state (`● Idle`, `● Thinking`, `● Running`).
-- **Context Window Bar**: 10-step progress bar (`█`/`░`) colored dynamically by consumption percentage (green, yellow, red).
-- **Dual Quota Monitoring**: Real-time 5-hour rolling session quota and 7-day weekly quota gauges with live reset countdown timers (`4h 51m`, `3d 13h`).
-- **High Compatibility**: Integrates seamlessly with `agy-hud` or runs as a self-contained pure Bash + `jq` script.
-- **Smart Installer**: Auto-detects installed Nerd Fonts, offers automated one-click font installation (via Homebrew or direct archive download), and guides terminal configuration.
+### Option 1: Homebrew (Recommended for macOS & Linux)
+
+```bash
+brew tap chahine/agy-statusline https://github.com/chahine/agy-statusline.git
+brew install agy-statusline
+agy-statusline-setup
+```
+
+*(Or in a single step: `brew install chahine/agy-statusline/agy-statusline && agy-statusline-setup`)*
+
+### Option 2: 1-Line Remote Install (curl)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/chahine/agy-statusline/main/bin/install.sh | bash
+```
+
+### Option 3: Manual Clone
+
+```bash
+git clone https://github.com/chahine/agy-statusline.git
+cd agy-statusline
+bash bin/install.sh
+```
 
 ---
 
-## Visual Elements
+## Features
+
+- **Clean 2-Line HUD**: Separates workspace and VCS identity (Line 1) from live telemetry and rate limits (Line 2).
+- **Single-Pass & Zero-Subshell Performance**: 100% pure Bash parameter expansions and single-pass `jq` execution for sub-15ms rendering without terminal flicker.
+- **Model & Plan Intelligence**: Parses and formats official and 3rd-party models (`3.8 Flash Med`, `Sonnet 3.7`, `Pro`, `Free`).
+- **Dynamic Agent Lifecycle**: Color-coded live agent state indicator (`● Idle`, `● Thinking`, `● Running`).
+- **Dynamic Context Window Bar**: 10-step progress bar (`█`/`░`) colored dynamically by consumption percentage (green, gold, red).
+- **Dual Rolling Quota Monitors**: Real-time 5-hour rolling session quota and 7-day weekly quota gauges with live reset countdown timers (`4h 51m`, `3d 13h`).
+- **Responsive Width Adaptation**: Automatically compacts labels, narrows progress bars, truncates long branches, and drops weekly quota on narrow terminals (<95, <80, <75, <68 cols) to prevent ugly line wraps.
+- **5 Handcrafted Truecolor Themes**: `tokyo-night` (default), `catppuccin`, `nord`, `solarized`, and `light`.
+- **4 Font Glyph Modes**: Support for `nerd` icons, standard universal `unicode` emojis, plain text `ascii` brackets, or clean text `none`.
+- **Interactive CLI & Automated Testing**: Includes `--preview`, `--help`, `--version` CLI flags and a 20-test regression suite verified across macOS and Ubuntu in CI.
+
+---
+
+## Visual Layout
 
 ### Line 1 — Workspace & Session
-| Element | Color (Dark Mode) | Terminal Glyph | Universal / Web | Description |
-|:---|:---|:---|:---|:---|
-| **Model** | Electric Cyan (`#00e5ff`) | `nf-oct-cpu` (`U+F490`) | `⚡` / `🤖` | Active model identifier (e.g. `3.8 Flash Med`) |
-| **Plan Tier** | Luminous Gold (`#ffd600`) | `nf-md-shield_account` (`U+F521`) | `✦` / `🛡️` | Current subscription tier (`Pro` / `Free`) |
-| **Workspace** | Vivid Tangerine (`#ff8500`) | `nf-fa-folder_open` (`U+F07C`) | `📁` | Current working directory basename |
-| **Git Branch** | Electric Orchid (`#d946ef`) | `nf-oct-git_branch` (`U+F418`) | `⎇` | Active VCS branch |
-| **Agent State** | Bright Neon Green (`#00e676`) | `●` | `●` | Current agent state (`● Idle`, `● Thinking`, `● Running`) |
+| Element | Color (Tokyo Night) | Nerd Font Glyph | Unicode Fallback | Description |
+|:---|:---|:---:|:---:|:---|
+| **Model** | Electric Cyan (`#00e5ff`) | `` (`U+F490`) | `⚡` | Active model identifier (e.g. `3.8 Flash Med`) |
+| **Plan Tier** | Luminous Gold (`#ffd600`) | `` (`U+F521`) | `✦` | Current subscription tier (`Pro` / `Free`) |
+| **Workspace** | Vivid Tangerine (`#ff8500`) | `` (`U+F07C`) | `📁` | Current working directory basename |
+| **Git Branch** | Electric Orchid (`#d946ef`) | `` (`U+F418`) | `⎇` | Active VCS branch |
+| **Agent State** | Dynamic ANSI Color | `●` | `●` | Live state (`● Idle`, `● Thinking`, `● Running`) |
 
-### Line 2 — Context & Quotas
-| Element | Color (Dark Mode) | Terminal Glyph | Universal / Web | Description |
-|:---|:---|:---|:---|:---|
-| **Context** | Dynamic Gauge | `nf-md-memory` (`U+DB80+U+DF5B`) | `🧠` | Context window fill bar and percentage |
-| **Session Usage** | Dynamic Gauge | `nf-fa-bolt` (`U+F0E7`) | `⚡` | 5-hour rolling rate limit usage & reset timer |
-| **Weekly Usage** | Dynamic Gauge | — | — | 7-day rate limit usage & reset timer |
-| **Reset Timer** | Crisp Slate (`#a0afc3`) | `nf-oct-clock` (`U+F43A`) | `⏱` | Estimated countdown duration until quota bucket resets |
-
-> **Note**: In your terminal with a configured Nerd Font (e.g. JetBrainsMono Nerd Font), dedicated glyphs are displayed. In web browsers, universal Unicode symbols are shown below so examples render consistently without missing glyph boxes.
+### Line 2 — Context & Telemetry
+| Element | Color (Tokyo Night) | Nerd Font Glyph | Unicode Fallback | Description |
+|:---|:---|:---:|:---:|:---|
+| **Context** | Dynamic Gauge | `󰍛` (`U+DB80+U+DF5B`) | `🧠` | Context window fill bar and percentage |
+| **5-Hour Quota** | Dynamic Gauge | `` (`U+F0E7`) | `⚡` | 5-hour rolling rate limit usage & reset countdown |
+| **Weekly Quota** | Dynamic Gauge | — | — | 7-day rate limit usage & reset countdown |
+| **Reset Timer** | Crisp Slate (`#a0afc3`) | `` (`U+F43A`) | `⏱` | Estimated countdown duration until quota bucket resets |
 
 ---
 
@@ -52,149 +87,146 @@ Displays active model and tier, workspace directory, git branch, agent execution
 
 #### Standard Session (Idle)
 ```text
-⚡ 3.8 Flash Med | ✦ Pro │ 📁 agy-statusline │ ⎇ main │ ● Idle
-🧠 Context █░░░░░░░░░ 11% │ ⚡ Usage ██████████ 96% (⏱ 4h 51m) |  ██████░░░░ 57% (⏱ 3d 13h)
+ 3.8 Flash Med |  Pro │  agy-statusline │  main │ ● Idle
+󰍛 Context █░░░░░░░░░ 11% │  Usage ██████████ 96% ( 4h 51m) |  ██████░░░░ 57% ( 3d 13h)
 ```
 
-#### Active Command / Execution State (Running)
+#### Active Command Execution (Running)
 ```text
-⚡ 3.1 Pro | ✦ Pro │ 📁 agy-statusline │ ⎇ feature/hud │ ● Running
-🧠 Context ████████░░ 82% │ ⚡ Usage █████████░ 88% (⏱ 1h 22m) |  ████░░░░░░ 42% (⏱ 5d 08h)
+ 3.1 Pro |  Pro │  agy-statusline │  feature/hud │ ● Running
+󰍛 Context ████████░░ 82% │  Usage █████████░ 88% ( 1h 22m) |  ████░░░░░░ 42% ( 5d 08h)
 ```
 
 #### Deep Reasoning State (Thinking)
 ```text
-⚡ Sonnet 3.7 | ✦ Pro │ 📁 agy-statusline │ ⎇ develop │ ● Thinking
-🧠 Context ░░░░░░░░░░ 3% │ ⚡ Usage ██░░░░░░░░ 24% (⏱ 3h 10m) |  █░░░░░░░░░ 12% (⏱ 6d 19h)
+ Sonnet 3.7 |  Pro │  agy-statusline │  develop │ ● Thinking
+󰍛 Context ░░░░░░░░░░ 3% │  Usage ██░░░░░░░░ 24% ( 3h 10m) |  █░░░░░░░░░ 12% ( 6d 19h)
 ```
 
-#### High Load / Near Quota Limit Warning
-When context or quota exceeds 90%, progress bars dynamically change color to red:
+#### High Load / Near Quota Warning
+When context or quota exceeds 90%, progress bars dynamically change to warning coral red:
 ```text
-⚡ 3.8 Flash High | ✦ Pro │ 📁 agy-statusline │ ⎇ hotfix │ ● Executing
-🧠 Context █████████░ 94% │ ⚡ Usage ██████████ 99% (⏱ 12m) |  █████████░ 91% (⏱ 18h)
+ 3.8 Flash High |  Pro │  agy-statusline │  hotfix │ ● Running
+󰍛 Context █████████░ 94% │  Usage ██████████ 99% ( 12m) |  █████████░ 91% ( 18h)
 ```
 
 ---
 
-### 2. Manual Testing Examples
+## Themes & Glyphs
 
-You can pipe JSON payloads directly into `bin/statusline.sh` to test how your terminal renders the status line under different conditions:
+### Color Themes
 
-#### Basic Test
-```bash
-echo '{"model":{"id":"gemini-3.8-flash-med","display_name":"3.8 Flash Med"},"plan_tier":"Google AI Pro","agent_state":"idle","vcs":{"branch":"main"},"cwd":"/Users/username/agy-statusline","context_window":{"used_percentage":11},"quota":{"gemini-5h":{"remaining_fraction":0.04,"reset_in_seconds":17460},"gemini-weekly":{"remaining_fraction":0.43,"reset_in_seconds":306000}},"terminal_width":120}' | bin/statusline.sh
-```
+`agy-statusline` includes 5 handcrafted truecolor (24-bit ANSI) themes:
 
-#### Testing Dynamic Agent States & High Context
-```bash
-cat <<'EOF' | bin/statusline.sh
-{
-  "model": { "id": "gemini-3.1-pro", "display_name": "Gemini 3.1 Pro" },
-  "plan_tier": "Google AI Pro",
-  "agent_state": "running",
-  "vcs": { "branch": "release/v2" },
-  "cwd": "/workspace/agy-statusline",
-  "context_window": { "used_percentage": 75 },
-  "quota": {
-    "gemini-5h": { "remaining_fraction": 0.20, "reset_in_seconds": 3600 },
-    "gemini-weekly": { "remaining_fraction": 0.65, "reset_in_seconds": 180000 }
-  },
-  "terminal_width": 120
-}
-EOF
-```
+| Theme | Accent Colors | Best Suited For |
+|:---|:---|:---|
+| `tokyo-night` *(default)* | Electric Cyan, Luminous Gold, Vivid Tangerine, Orchid | Modern dark terminals with high saturation |
+| `catppuccin` | Pastel Blue, Yellow, Peach, Mauve, Green | Soft, eye-pleasing pastel color schemes |
+| `nord` | Frost Cyan, Snow White, Polar Night, Aurora Green | Arctic and cold-tinted terminal themes |
+| `solarized` | Solarized Cyan, Yellow, Orange, Base2 | Classic Ethan Schoonover dark solarized setups |
+| `light` | Deep Teal, Amber, Brick Orange, Plum Purple | Light-background terminal profiles |
+
+### Glyph Modes
+
+Configure glyph rendering to match your terminal font environment:
+
+| Mode | Example Output | Best Suited For |
+|:---|:---|:---|
+| `nerd` *(default)* | ` 3.8 Flash Med \|  Pro │  project │  main │ ● Idle` | Terminals with JetBrainsMono or any Nerd Font |
+| `unicode` | `⚡ 3.8 Flash Med \| ✦ Pro │ 📁 project │ ⎇ main │ ● Idle` | Universal Unicode emojis and symbols |
+| `ascii` | `[M] 3.8 Flash Med \| [P] Pro │ [D] project │ [B] main │ * Idle` | TTYs, SSH sessions, and plain-text purists |
+| `none` | `3.8 Flash Med \| Pro │ project │ main │ ● Idle` | Clean minimalist display without icons or prefixes |
 
 ---
 
-### 3. Configuration Examples (`~/.config/agy-hud/config.json`)
+## Configuration
 
-The HUD's behavior can be customized by editing `~/.config/agy-hud/config.json`:
-
-#### Default (Usage Percentage Used)
-Shows used percentage and countdown to reset (e.g. `Usage ██████████ 96% ( 4h 51m)`):
-```json
-{
-  "show_model": true,
-  "show_progress_bar": true,
-  "multiline": true,
-  "color": true,
-  "debug": false,
-  "show_git_branch": true,
-  "show_cwd": true,
-  "show_agent_state": true,
-  "show_icons": true,
-  "context_value": "percent",
-  "usage_value": "used"
-}
-```
-
-#### Remaining Quota Mode
-To display remaining fraction instead of consumed fraction (e.g. `Usage ░░░░░░░░░░ 4% left`):
-```json
-{
-  "usage_value": "remaining"
-}
-```
-
-#### Minimal Mode (No Icons)
-For environments without Nerd Fonts:
-```json
-{
-  "show_icons": false
-}
-```
-
----
-
-### 4. CLI Configuration (`~/.gemini/antigravity-cli/settings.json`)
-
-The installer configures `settings.json` automatically. The corresponding configuration snippet is:
+You can configure your preferences permanently via `~/.config/agy-statusline/config.json`:
 
 ```json
 {
-  "statusLine": {
-    "type": "command",
-    "command": "bash \"$HOME/.gemini/statusline.sh\"",
-    "enabled": true
-  }
+  "theme": "tokyo-night",
+  "glyphs": "nerd"
 }
 ```
 
----
-
-## Requirements
-
-1. **Antigravity CLI (`agy`)**: Installed and initialized (`~/.gemini/antigravity-cli`).
-2. **`jq`**: JSON processor (`brew install jq` on macOS or `sudo apt install jq` on Linux).
-3. **`git`**: For branch resolution.
-4. **Nerd Font**: Terminal font with glyph support (e.g. JetBrainsMono Nerd Font, FiraCode, Meslo) to display icons properly. The installer can install this for you.
-
----
-
-## Installation
-
-### Automated Install
+Or override them dynamically in your shell profile (`~/.bashrc`, `~/.zshrc`):
 
 ```bash
-git clone https://github.com/chahine/agy-statusline.git
-cd agy-statusline
-bash bin/install.sh
+export AGY_STATUSLINE_THEME="catppuccin"   # tokyo-night, catppuccin, nord, solarized, light
+export AGY_STATUSLINE_GLYPHS="unicode"    # nerd, unicode, ascii, none
 ```
-
-The installer will:
-1. Verify system dependencies (`jq`, `git`, and `agy`).
-2. Auto-detect installed Nerd Fonts or offer to install **JetBrainsMono Nerd Font** automatically.
-3. Install `statusline.sh` to `~/.gemini/statusline.sh`.
-4. Configure `~/.gemini/antigravity-cli/settings.json` to enable `statusLine`.
-5. Display a live preview of the 2-line HUD.
 
 ---
 
-## Uninstall
+## Responsive Width Adaptation
 
-To remove the statusline configuration:
+`agy-statusline` automatically detects your terminal width (from `agy` telemetry or `tput cols`) and dynamically scales:
 
+- **Full Width (≥95 cols)**: Full names, 10-block progress bars (`██████████`), full labels (`Context`, `Usage`), and both 5-hour and weekly quotas.
+- **Narrow (<95 cols)**: Long directory names and Git branch names are automatically truncated with middle ellipsis (e.g. `feat…name`).
+- **Compact (<80 cols)**: Progress bars compact from 10 blocks to 5 blocks (`█████`).
+- **Ultra-Compact (<75 cols)**: Labels abbreviate to `Ctx` and `Use`.
+- **Minimal (<68 cols)**: Omits the weekly quota gauge entirely to guarantee no multi-line wrapping in split panes or narrow windows.
+
+---
+
+## CLI Usage
+
+When installed via Homebrew or available in your `$PATH`:
+
+```bash
+# Render a live interactive preview using current terminal dimensions & branch
+agy-statusline --preview
+
+# Display help and available options
+agy-statusline --help
+
+# Check version
+agy-statusline --version
+
+# Re-run configuration or setup for Antigravity CLI
+agy-statusline-setup
+```
+
+---
+
+## Terminal Font Setup
+
+To render icons (`    󰍛  `) properly in default `nerd` mode, configure your terminal font to a [Nerd Font](https://www.nerdfonts.com/) (such as **JetBrainsMono Nerd Font**):
+
+- **macOS Terminal.app**: Settings (⌘,) → Profiles → Font → Change... → Choose `JetBrainsMono Nerd Font`.
+- **iTerm2**: Settings (⌘,) → Profiles → Text → Font → Choose `JetBrainsMono Nerd Font` (or enable *Use a different font for non-ASCII text*).
+- **VS Code / Cursor / Antigravity Terminal**: Settings (⌘,) → search `terminal.integrated.fontFamily` → set to `'JetBrainsMono Nerd Font'`.
+- **Ghostty**: In `~/.config/ghostty/config` add `font-family = "JetBrainsMono Nerd Font"`.
+- **Alacritty**: In `~/.config/alacritty/alacritty.toml` add `[font.normal] family = "JetBrainsMono Nerd Font"`.
+- **Kitty**: In `~/.config/kitty/kitty.conf` add `font_family JetBrainsMono Nerd Font`.
+
+*(If you prefer not to install a custom font, simply set `AGY_STATUSLINE_GLYPHS=unicode` or `ascii`.)*
+
+---
+
+## Automated Testing
+
+`agy-statusline` includes a 20-test regression suite covering cold starts, running/thinking states, warning thresholds, Claude/3P model pools, responsive breakpoints, glyph engines, theme switching, and CLI flags.
+
+Run the test suite locally:
+
+```bash
+bash tests/test_statusline.sh
+```
+
+---
+
+## Uninstallation
+
+### If installed via Homebrew:
+```bash
+agy-statusline-uninstall
+brew uninstall agy-statusline
+```
+
+### If installed via script:
 ```bash
 bash bin/uninstall.sh
 ```
@@ -203,4 +235,4 @@ bash bin/uninstall.sh
 
 ## License
 
-MIT
+[MIT](LICENSE) © 2026 Mouhamad Chahine
